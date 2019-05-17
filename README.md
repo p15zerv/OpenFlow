@@ -18,11 +18,7 @@ This fork contains modified sources to increase compatibility to the other frame
     * Check [Abstract Network Description Language] | [CoRE Simulation Model Installer] | [Gantt Chart Timing Analyzer]
 5. Get OpenFlow framework
     * GitHub: Clone framework and import it in OMNEST/OMNeT++
-6. Apply changes to the INET framework
-	* Apply the git patch (inet-3.5-OFExt.patch) to your inet v3.5.0 repository: 
-		1. cd to the INET git directory
-		2. execute `git apply pathTo/inet-3.5-OFExt.patch`
-	* Or, manually swap the files in the INET framework sources with the files located in the modifiedInetFiles directory
+6. Select at least the following INET Project Features TCP Common, TCP(INET), IPv4 protocol, IPv6 protocol, Multi network layer, UDP protocol, SCTP, Ethernet, PPP, MPLS support (incl. LDP and RSVP-TE), HTTPTools, IEEE802.1d
 
 ## Continuous Integration
 
