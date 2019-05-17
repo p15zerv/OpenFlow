@@ -8,7 +8,7 @@
 using namespace std;
 
 
-
+namespace ofp{
 
 LLDPMibGraph::LLDPMibGraph(){
     numOfEdges=0;
@@ -136,4 +136,7 @@ const std::map<std::string, std::vector<LLDPMib> >& LLDPMibGraph::getVerticies()
 long LLDPMibGraph::getVersion() const {
     return version;
 }
+
+} /*end namespace ofp*/
+
 

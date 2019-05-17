@@ -1,10 +1,22 @@
 #include "openflow/hyperflow/HF_ARPResponder.h"
 #include <algorithm>
+//#include "openflow/controllerApps/AbstractControllerApp.h"
+//#include "inet/transportlayer/contract/tcp/TCPSocket.h"
+//#include "openflow/openflow/controller/Switch_Info.h"
+//#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
+#include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
+#include "openflow/utility/ARP_Wrapper.h"
+#include "inet/linklayer/common/Ieee802Ctrl_m.h"
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
+using namespace inet;
+
+namespace ofp {
+
+Define_Module(HF_ARPResponder);
 
 #define MSGKIND_ARPRESPONDERBOOTED 801
 
-Define_Module(HF_ARPResponder);
 
 HF_ARPResponder::HF_ARPResponder(){
 
@@ -71,7 +83,7 @@ void HF_ARPResponder::handlePacketIn(OFP_Packet_In * packet_in_msg){
 
 
 
-                    EtherFrame *frame = NULL;
+                    EthernetIIFrame *frame = NULL;
                     EthernetIIFrame *eth2Frame = new EthernetIIFrame(arpReply->getName());
                     eth2Frame->setSrc(arpReply->getSrcMACAddress());  // if blank, will be filled in by MAC
                     eth2Frame->setDest(arpReply->getDestMACAddress());
@@ -86,21 +98,13 @@ void HF_ARPResponder::handlePacketIn(OFP_Packet_In * packet_in_msg){
 
 
                     //encap the arp reply
-                    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-                    packetOut->getHeader().version = OFP_VERSION;
-                    packetOut->getHeader().type = OFPT_PACKET_OUT;
-                    packetOut->setBuffer_id(OFP_NO_BUFFER);
-                    packetOut->setByteLength(24);
-                    packetOut->encapsulate(frame);
-                    packetOut->setIn_port(-1);
-                    ofp_action_output *action_output = new ofp_action_output();
-                    action_output->port = headerFields.inport;
-                    packetOut->setActionsArraySize(1);
-                    packetOut->setActions(0, *action_output);
+                    OFP_Packet_Out* packetOut = OFMessageFactory::instance()->createPacketOut(&headerFields.inport, 1, -1, OFP_NO_BUFFER, frame);
 
                     //send the packet
                     answeredArp++;
                     controller->sendPacketOut(packetOut,headerFields.swInfo->getSocket());
+
+                    delete frame;
                 } else {
                     //we need to flood the packet
                     floodedArp++;
@@ -144,5 +148,7 @@ void HF_ARPResponder::receiveSignal(cComponent *src, simsignal_t id, cObject *ob
     }
 
 }
+
+} /*end namespace ofp*/
 
 

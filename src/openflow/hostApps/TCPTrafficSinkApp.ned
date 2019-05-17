@@ -9,6 +9,7 @@ import inet.applications.contract.ITCPApp;
 simple TCPTrafficSinkApp like ITCPApp
 {
     parameters:
+        @class(ofp::TCPTrafficSinkApp);
         @display("i=block/app");
         string localAddress = default("");
         int localPort = default(-1);  // local port

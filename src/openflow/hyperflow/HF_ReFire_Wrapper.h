@@ -1,13 +1,15 @@
 
 
-#ifndef HF_REFIRE_WRAPPER_H_
-#define HF_REFIRE_WRAPPER_H_
+#ifndef OPENFLOW_HYPERFLOW_HF_REFIRE_WRAPPER_H_
+#define OPENFLOW_HYPERFLOW_HF_REFIRE_WRAPPER_H_
 
 #include <omnetpp.h>
 #include "inet/linklayer/common/MACAddress.h"
 #include "openflow/hyperflow/HyperFlowStructs.h"
 
 using namespace std;
+
+namespace ofp{
 
 class HF_ReFire_Wrapper: public cObject {
 
@@ -24,7 +26,7 @@ protected:
     DataChannelEntry dataChannelEntry;
 };
 
+} /*end namespace ofp*/
 
 
-
-#endif /* BUFFER_H_ */
+#endif /* OPENFLOW_HYPERFLOW_HF_REFIRE_WRAPPER_H_ */

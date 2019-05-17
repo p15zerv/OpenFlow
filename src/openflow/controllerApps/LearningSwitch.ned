@@ -18,6 +18,7 @@ package openflow.controllerApps;
 simple LearningSwitch like AbstractControllerApp
 {
     parameters:
+        @class(ofp::LearningSwitch);
         @display("i=block/app");
         int flowModHardTimeOut = default(0);
         int flowModIdleTimeOut = default(10);

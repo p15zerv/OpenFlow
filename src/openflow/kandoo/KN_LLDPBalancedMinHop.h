@@ -1,13 +1,13 @@
 
-#ifndef KNLLDPBALANCEDMINHOP_H_
-#define KNLLDPBALANCEDMINHOP_H_
+#ifndef OPENFLOW_KANDOO_KNLLDPBALANCEDMINHOP_H_
+#define OPENFLOW_KANDOO_KNLLDPBALANCEDMINHOP_H_
 
 #include <omnetpp.h>
 #include "openflow/controllerApps/LLDPBalancedMinHop.h"
 #include "openflow/kandoo/KandooAgent.h"
 
 
-
+namespace ofp{
 
 class KN_LLDPBalancedMinHop:public LLDPBalancedMinHop {
 
@@ -28,5 +28,6 @@ protected:
 
 };
 
+} /*end namespace ofp*/
 
-#endif
+#endif /** OPENFLOW_KANDOO_KNLLDPBALANCEDMINHOP_H_ **/

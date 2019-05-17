@@ -1,10 +1,22 @@
 #include "openflow/kandoo/KN_ARPResponder.h"
 #include <algorithm>
+//#include "openflow/controllerApps/AbstractControllerApp.h"
+//#include "inet/transportlayer/contract/tcp/TCPSocket.h"
+//#include "openflow/openflow/controller/Switch_Info.h"
+//#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
+#include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
+#include "openflow/utility/ARP_Wrapper.h"
+#include "inet/linklayer/common/Ieee802Ctrl_m.h"
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
+using namespace inet;
+
+namespace ofp{
+
+Define_Module(KN_ARPResponder);
 
 #define MSGKIND_ARPRESPONDERBOOTED 801
 
-Define_Module(KN_ARPResponder);
 
 KN_ARPResponder::KN_ARPResponder(){
 
@@ -66,21 +78,17 @@ void KN_ARPResponder::handlePacketIn(OFP_Packet_In * packet_in_msg){
                     dropPacket(packet_in_msg);
 
                     //encap the arp reply
-                    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-                    packetOut->getHeader().version = OFP_VERSION;
-                    packetOut->getHeader().type = OFPT_PACKET_OUT;
-                    packetOut->setBuffer_id(OFP_NO_BUFFER);
-                    packetOut->setByteLength(24);
-                    packetOut->encapsulate(createArpReply(headerFields.arp_dst_adr,headerFields.arp_src_adr,ipToMac[headerFields.arp_dst_adr.str()],headerFields.src_mac));
-                    packetOut->setIn_port(-1);
-                    ofp_action_output *action_output = new ofp_action_output();
-                    action_output->port = headerFields.inport;
-                    packetOut->setActionsArraySize(1);
-                    packetOut->setActions(0, *action_output);
+                    inet::EthernetIIFrame* arpReply = createArpReply(
+                        headerFields.arp_dst_adr, headerFields.arp_src_adr,
+                        ipToMac[headerFields.arp_dst_adr.str()],
+                        headerFields.src_mac);
+
+                    OFP_Packet_Out* packetOut = OFMessageFactory::instance()->createPacketOut(&headerFields.inport, 1, -1, OFP_NO_BUFFER, arpReply);
 
                     //send the packet
                     answeredArp++;
                     controller->sendPacketOut(packetOut,headerFields.swInfo->getSocket());
+                    delete arpReply;
                 } else {
                     if(!knAgent->getIsRootController()){
                         //we need to ask the root controller
@@ -163,18 +171,13 @@ void KN_ARPResponder::receiveSignal(cComponent *src, simsignal_t id, cObject *ob
                                     knAgent->sendReply(knpck,entry2);
 
                                     //encap the arp reply
-                                    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-                                    packetOut->getHeader().version = OFP_VERSION;
-                                    packetOut->getHeader().type = OFPT_PACKET_OUT;
-                                    packetOut->setBuffer_id(OFP_NO_BUFFER);
-                                    packetOut->setByteLength(24);
-                                    packetOut->encapsulate(createArpReply(headerFields.arp_dst_adr,headerFields.arp_src_adr,ipToMac[headerFields.arp_dst_adr.str()],headerFields.src_mac));
-                                    packetOut->setIn_port(-1);
-                                    ofp_action_output *action_output = new ofp_action_output();
-                                    action_output->port = headerFields.inport;
-                                    packetOut->setActionsArraySize(1);
-                                    packetOut->setActions(0, *action_output);
+                                    inet::EthernetIIFrame* arpReply = createArpReply(
+                                        headerFields.arp_dst_adr, headerFields.arp_src_adr,
+                                        ipToMac[headerFields.arp_dst_adr.str()],
+                                        headerFields.src_mac);
 
+                                    OFP_Packet_Out* packetOut = OFMessageFactory::instance()->createPacketOut(&headerFields.inport, 1, -1, OFP_NO_BUFFER, arpReply);
+                                    delete arpReply;
                                     //send the packet
                                     answeredArp++;
 
@@ -226,4 +229,5 @@ void KN_ARPResponder::receiveSignal(cComponent *src, simsignal_t id, cObject *ob
     }
 }
 
+} /*end namespace ofp*/
 

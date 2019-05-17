@@ -1,6 +1,10 @@
 #include "openflow/controllerApps/LearningSwitch.h"
 #include "openflow/openflow/controller/Switch_Info.h"
 
+using namespace inet;
+
+namespace ofp{
+
 Define_Module(LearningSwitch);
 
 LearningSwitch::LearningSwitch(){
@@ -54,17 +58,27 @@ void LearningSwitch::doSwitching(OFP_Packet_In *packet_in_msg){
             uint32_t outport = lookupTable[headerFields.swInfo][headerFields.dst_mac];
 
             oxm_basic_match match = oxm_basic_match();
-            match.OFB_ETH_DST = headerFields.dst_mac;
-            match.OFB_ETH_TYPE = headerFields.eth_type;
-            match.OFB_ETH_SRC = headerFields.src_mac;
-            match.OFB_IN_PORT = headerFields.inport;
+            match.dl_dst = headerFields.dst_mac;
+            match.dl_type = headerFields.eth_type;
+            match.dl_src = headerFields.src_mac;
+            match.in_port = headerFields.inport;
 
             match.wildcards= 0;
-            match.wildcards |= OFPFW_IN_PORT;
-            match.wildcards |=  OFPFW_DL_SRC;
-            match.wildcards |= OFPFW_DL_TYPE;
+            //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
+//            match.wildcards |= OFPFW_IN_PORT;
+//            match.wildcards |= OFPFW_DL_TYPE;
+//            match.wildcards |= OFPFW_DL_SRC;
+//            match.wildcards |= OFPFW_DL_DST;
+            match.wildcards |= OFPFW_DL_VLAN;
+            match.wildcards |=  OFPFW_DL_VLAN_PCP;
+            match.wildcards |= OFPFW_NW_PROTO;
+            match.wildcards |= OFPFW_NW_SRC_ALL;
+            match.wildcards |= OFPFW_NW_DST_ALL;
+            match.wildcards |= OFPFW_TP_SRC;
+            match.wildcards |= OFPFW_TP_DST;
 
-
+#endif
 
             TCPSocket * socket = controller->findSocketFor(packet_in_msg);
             sendFlowModMessage(OFPFC_ADD, match, outport, socket,idleTimeout,hardTimeout);
@@ -73,6 +87,8 @@ void LearningSwitch::doSwitching(OFP_Packet_In *packet_in_msg){
     }
 }
 
+
+} /*end namespace ofp*/
 
 
 

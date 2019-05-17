@@ -1,16 +1,18 @@
 
-#ifndef KANDOO_AGENT_H_
-#define KANDOO_AGENT_H_
+#ifndef OPENFLOW_KANDOO_KANDOO_AGENT_H_
+#define OPENFLOW_KANDOO_KANDOO_AGENT_H_
 
 #include <omnetpp.h>
 #include "openflow/controllerApps/AbstractTCPControllerApp.h"
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
-#include "openflow/messages/KN_Packet_m.h"
+#include "openflow/messages/kandoo/KN_Packet_m.h"
+
+namespace ofp{
 
 struct SwitchControllerMapping {
     std::string switchId;
     std::string controllerId;
-    TCPSocket *socket;
+    inet::TCPSocket *socket;
 };
 
 class KandooAgent:public AbstractTCPControllerApp {
@@ -44,5 +46,6 @@ protected:
 
 };
 
+} /*end namespace ofp*/
 
-#endif
+#endif /** OPENFLOW_KANDOO_KANDOO_AGENT_H_ **/

@@ -1,10 +1,12 @@
 
 
-#ifndef STATICSPANNINGTREE_H_
-#define STATICSPANNINGTREE_H_
+#ifndef OPENFLOW_UTILITY_STATICSPANNINGTREE_H_
+#define OPENFLOW_UTILITY_STATICSPANNINGTREE_H_
 
 #include <omnetpp.h>
 #include "openflow/openflow/switch/OF_Switch.h"
+
+namespace ofp{
 
 class StaticSpanningTree : public cSimpleModule
 {
@@ -27,5 +29,7 @@ protected:
         virtual void handleMessage(cMessage *msg);
 };
 
+} /*end namespace ofp*/
 
-#endif /* SPANNINGTREE_H_ */
+
+#endif /* OPENFLOW_UTILITY_STATICSPANNINGTREE_H_ */

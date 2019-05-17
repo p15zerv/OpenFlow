@@ -8,8 +8,9 @@ using namespace std;
 using namespace inet;
 
 
-Define_Module(TCPTrafficGeneratorApp);
+namespace ofp{
 
+Define_Module(TCPTrafficGeneratorApp);
 
 void TCPTrafficGeneratorApp::initialize(){
     topo.extractByNedTypeName(cStringTokenizer(par("destinationNedType")).asVector());
@@ -69,7 +70,6 @@ void TCPTrafficGeneratorApp::handleMessage(cMessage *msg){
 
             //generate packet
             cPacket *packet = new cPacket();
-            packet->setKind(TCP_C_SEND);
             int pos = floor(uniform(0,lineNumbers));
 
             //get the size of the nth line
@@ -208,7 +208,7 @@ unsigned int TCPTrafficGeneratorApp::CountLines( const vector <char> & buff, int
     return newlines;
 }
 
-
+} /*end namespace ofp*/
 
 
 

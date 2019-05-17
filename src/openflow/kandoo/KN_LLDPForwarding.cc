@@ -3,7 +3,11 @@
 #include <string>
 #include "inet/networklayer/ipv4/ICMPMessage.h"
 #include "inet/applications/pingapp/PingPayload_m.h"
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
+using namespace inet;
+
+namespace ofp{
 
 Define_Module(KN_LLDPForwarding);
 
@@ -42,7 +46,7 @@ void KN_LLDPForwarding::handlePacketIn(OFP_Packet_In * packet_in_msg){
     }
 
     //ignore arp requests
-    if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && packet_in_msg->getMatch().OFB_ARP_OP == ARP_REQUEST){
+    if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && packet_in_msg->getMatch().nw_proto == ARP_REQUEST){
         return;
     }
 
@@ -100,12 +104,15 @@ void KN_LLDPForwarding::handlePacketIn(OFP_Packet_In * packet_in_msg){
 
         //set flow mods for all switches under my controller's command
         oxm_basic_match match = oxm_basic_match();
-        match.OFB_ETH_DST = headerFields.dst_mac;
+        match.dl_dst = headerFields.dst_mac;
 
         match.wildcards= 0;
+        //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
         match.wildcards |= OFPFW_IN_PORT;
         match.wildcards |=  OFPFW_DL_SRC;
         match.wildcards |= OFPFW_DL_TYPE;
+#endif
 
         TCPSocket * socket = controller->findSocketFor(packet_in_msg);
         sendFlowModMessage(OFPFC_ADD, match, seg.outport, socket,idleTimeout,hardTimeout);
@@ -118,12 +125,15 @@ void KN_LLDPForwarding::handlePacketIn(OFP_Packet_In * packet_in_msg){
             seg = route.front();
             route.pop_front();
             oxm_basic_match match = oxm_basic_match();
-            match.OFB_ETH_DST = headerFields.dst_mac;
+            match.dl_dst = headerFields.dst_mac;
 
             match.wildcards= 0;
+            //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
             match.wildcards |= OFPFW_IN_PORT;
             match.wildcards |=  OFPFW_DL_SRC;
             match.wildcards |= OFPFW_DL_TYPE;
+#endif
 
             computedRoute += seg.chassisId + " -> ";
 
@@ -184,7 +194,7 @@ void KN_LLDPForwarding::receiveSignal(cComponent *src, simsignal_t id, cObject *
                         }
 
                         //ignore arp requests
-                        if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && pckin->getMatch().OFB_ARP_OP == ARP_REQUEST){
+                        if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && pckin->getMatch().nw_proto == ARP_REQUEST){
                             return;
                         }
 
@@ -242,12 +252,15 @@ void KN_LLDPForwarding::receiveSignal(cComponent *src, simsignal_t id, cObject *
 
                             //set flow mods for all switches under my controller's command
                             oxm_basic_match match = oxm_basic_match();
-                            match.OFB_ETH_DST = headerFields.dst_mac;
+                            match.dl_dst = headerFields.dst_mac;
 
                             match.wildcards= 0;
+                            //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
                             match.wildcards |= OFPFW_IN_PORT;
                             match.wildcards |=  OFPFW_DL_SRC;
                             match.wildcards |= OFPFW_DL_TYPE;
+#endif
 
 
                             entry = KandooEntry();
@@ -258,7 +271,8 @@ void KN_LLDPForwarding::receiveSignal(cComponent *src, simsignal_t id, cObject *
                             entry.srcSwitch = "";
                             entry.type=2;
                             entry.srcController = knpck->getKnEntry().trgController;
-                            entry.payload = createFlowMod(OFPFC_ADD, match, seg.outport,idleTimeout,hardTimeout);
+                            uint32_t out = seg.outport;
+                            entry.payload = OFMessageFactory::instance()->createFlowModMessage(OFPFC_ADD, match, 0, &out, 1,idleTimeout,hardTimeout);
 
                             knAgent->sendReply(knpck,entry);
 
@@ -268,12 +282,15 @@ void KN_LLDPForwarding::receiveSignal(cComponent *src, simsignal_t id, cObject *
                                 seg = route.front();
                                 route.pop_front();
                                 oxm_basic_match match = oxm_basic_match();
-                                match.OFB_ETH_DST = headerFields.dst_mac;
+                                match.dl_dst = headerFields.dst_mac;
 
                                 match.wildcards= 0;
+                                //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
                                 match.wildcards |= OFPFW_IN_PORT;
                                 match.wildcards |=  OFPFW_DL_SRC;
                                 match.wildcards |= OFPFW_DL_TYPE;
+#endif
 
                                 entry = KandooEntry();
                                 entry.trgApp = "KN_LLDPForwarding";
@@ -283,7 +300,8 @@ void KN_LLDPForwarding::receiveSignal(cComponent *src, simsignal_t id, cObject *
                                 entry.srcSwitch = "";
                                 entry.type=2;
                                 entry.srcController = knpck->getKnEntry().trgController;
-                                entry.payload = createFlowMod(OFPFC_ADD, match, seg.outport,idleTimeout,hardTimeout);
+                                uint32_t out = seg.outport;
+                                entry.payload = OFMessageFactory::instance()->createFlowModMessage(OFPFC_ADD, match, 0, &out, 1,idleTimeout,hardTimeout);
 
                                 knAgent->sendReplyToSwitchAuthoritive(seg.chassisId,entry);
                             }
@@ -306,7 +324,7 @@ void KN_LLDPForwarding::receiveSignal(cComponent *src, simsignal_t id, cObject *
     }
 }
 
-
+} /*end namespace ofp*/
 
 
 

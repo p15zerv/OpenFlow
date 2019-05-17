@@ -1,6 +1,6 @@
 
-#ifndef TCP_TRAFFIC_SINK_APP_H_
-#define TCP_TRAFFIC_SINK_APP_H_
+#ifndef OPENFLOW_HOSTAPPS_TCP_TRAFFIC_SINK_APP_H_
+#define OPENFLOW_HOSTAPPS_TCP_TRAFFIC_SINK_APP_H_
 
 #include "inet/common/INETDefs.h"
 #include <iostream>
@@ -11,6 +11,8 @@
 
 using namespace std;
 using namespace inet;
+
+namespace ofp{
 
 /**
  * Single-connection TCP application.
@@ -33,5 +35,7 @@ class INET_API TCPTrafficSinkApp : public cSimpleModule, public TCPSocket::Callb
 
 };
 
-#endif
+} /*end namespace ofp*/
+
+#endif /** OPENFLOW_HOSTAPPS_TCP_TRAFFIC_SINK_APP_H_**/
 

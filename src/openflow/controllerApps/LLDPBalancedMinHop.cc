@@ -4,8 +4,12 @@
 #include <queue>
 
 using namespace std;
+using namespace inet;
+
+namespace ofp{
 
 Define_Module(LLDPBalancedMinHop);
+
 
 struct comp {
     bool operator() (const pair<string,int> &a, const pair<string,int> &b) {
@@ -51,7 +55,7 @@ void LLDPBalancedMinHop::handlePacketIn(OFP_Packet_In * packet_in_msg){
     }
 
     //ignore arp requests
-    if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && packet_in_msg->getMatch().OFB_ARP_OP == ARP_REQUEST){
+    if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && packet_in_msg->getMatch().nw_proto == ARP_REQUEST){
         return;
     }
 
@@ -74,12 +78,24 @@ void LLDPBalancedMinHop::handlePacketIn(OFP_Packet_In * packet_in_msg){
 
         //set flow mods for all switches under my controller's command
         oxm_basic_match match = oxm_basic_match();
-        match.OFB_ETH_DST = headerFields.dst_mac;
-        match.OFB_ETH_SRC = headerFields.src_mac;
+        match.dl_src = headerFields.dst_mac;
+        match.dl_dst = headerFields.src_mac;
 
         match.wildcards= 0;
-        match.wildcards |= OFPFW_IN_PORT;
-        match.wildcards |= OFPFW_DL_TYPE;
+        //TODO fix wildcards for OFP151
+#if OFP_VERSION_IN_USE == OFP_100
+            match.wildcards |= OFPFW_IN_PORT;
+            match.wildcards |= OFPFW_DL_TYPE;
+        //    match.wildcards |= OFPFW_DL_SRC;
+        //    match.wildcards |= OFPFW_DL_DST;
+            match.wildcards |= OFPFW_DL_VLAN;
+            match.wildcards |=  OFPFW_DL_VLAN_PCP;
+            match.wildcards |= OFPFW_NW_PROTO;
+            match.wildcards |= OFPFW_NW_SRC_ALL;
+            match.wildcards |= OFPFW_NW_DST_ALL;
+            match.wildcards |= OFPFW_TP_SRC;
+            match.wildcards |= OFPFW_TP_DST;
+#endif
 
 
         sendFlowModMessage(OFPFC_ADD, match, seg.outport, controller->findSocketFor(packet_in_msg),idleTimeout,hardTimeout);
@@ -89,12 +105,24 @@ void LLDPBalancedMinHop::handlePacketIn(OFP_Packet_In * packet_in_msg){
             seg = route.front();
             route.pop_front();
             oxm_basic_match match = oxm_basic_match();
-            match.OFB_ETH_DST = headerFields.dst_mac;
-            match.OFB_ETH_SRC = headerFields.src_mac;
+            match.dl_dst = headerFields.dst_mac;
+            match.dl_src = headerFields.src_mac;
 
             match.wildcards= 0;
+            //TODO fix wildcards for OFP151
+#if OFP_VERSION_IN_USE == OFP_100
             match.wildcards |= OFPFW_IN_PORT;
             match.wildcards |= OFPFW_DL_TYPE;
+//            match.wildcards |= OFPFW_DL_SRC;
+//            match.wildcards |= OFPFW_DL_DST;
+            match.wildcards |= OFPFW_DL_VLAN;
+            match.wildcards |=  OFPFW_DL_VLAN_PCP;
+            match.wildcards |= OFPFW_NW_PROTO;
+            match.wildcards |= OFPFW_NW_SRC_ALL;
+            match.wildcards |= OFPFW_NW_DST_ALL;
+            match.wildcards |= OFPFW_TP_SRC;
+            match.wildcards |= OFPFW_TP_DST;
+#endif
 
 
             TCPSocket * socket = controller->findSocketForChassisId(seg.chassisId);
@@ -273,6 +301,8 @@ std::list<LLDPPathSegment> LLDPBalancedMinHop::computeBalancedMinHopPath(std::st
     std::copy(result.begin(),result.end(), std::back_inserter(res2));
     return res2;
 }
+
+} /*end namespace ofp*/
 
 
 

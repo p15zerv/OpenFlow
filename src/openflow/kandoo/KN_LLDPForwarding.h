@@ -1,13 +1,13 @@
 
-#ifndef KNLLDPAGENTFORWARDING_H_
-#define KNLLDPAGENTFORWARDING_H_
+#ifndef OPENFLOW_KANDOO_KNLLDPAGENTFORWARDING_H_
+#define OPENFLOW_KANDOO_KNLLDPAGENTFORWARDING_H_
 
 #include <omnetpp.h>
 #include "openflow/controllerApps/LLDPForwarding.h"
 #include "openflow/kandoo/KandooAgent.h"
 
 
-
+namespace ofp{
 
 class KN_LLDPForwarding:public LLDPForwarding {
 
@@ -29,5 +29,6 @@ protected:
 
 };
 
+} /*end namespace ofp*/
 
-#endif
+#endif /** OPENFLOW_KANDOO_KNLLDPAGENTFORWARDING_H_ **/

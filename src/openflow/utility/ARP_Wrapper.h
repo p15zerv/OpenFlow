@@ -1,13 +1,14 @@
 
 
-#ifndef ARP_WRAPPER_H_
-#define ARP_WRAPPER_H_
+#ifndef OPENFLOW_UTILITY_ARP_WRAPPER_H_
+#define OPENFLOW_UTILITY_ARP_WRAPPER_H_
 
 #include <omnetpp.h>
 #include "inet/linklayer/common/MACAddress.h"
 
-using namespace std;
-using namespace inet;
+using namespace omnetpp;
+
+namespace ofp{
 
 class ARP_Wrapper: public cObject {
 
@@ -15,20 +16,20 @@ public:
     ARP_Wrapper();
     ~ARP_Wrapper();
 
-    const string& getSrcIp() const;
-    void setSrcIp(const string& srcIp);
+    const std::string& getSrcIp() const;
+    void setSrcIp(const std::string& srcIp);
 
-    const MACAddress& getSrcMacAddress() const;
-    void setSrcMacAddress(const MACAddress& macAddress);
+    const inet::MACAddress& getSrcMacAddress() const;
+    void setSrcMacAddress(const inet::MACAddress& macAddress);
 
 
 
 protected:
-    string srcIp;
-    MACAddress srcMac;
+    std::string srcIp;
+    inet::MACAddress srcMac;
 };
 
+} /*end namespace ofp*/
 
 
-
-#endif /* BUFFER_H_ */
+#endif /* OPENFLOW_UTILITY_ARP_WRAPPER_H_ */

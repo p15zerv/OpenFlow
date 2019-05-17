@@ -1,9 +1,12 @@
 #include <omnetpp.h>
+#include <openflow/openflow/protocol/OpenFlow.h>
 #include "openflow/openflow/switch/Buffer.h"
-#include "openflow/openflow/protocol/openflow.h"
+#include <algorithm>
 
 using namespace std;
 using namespace inet;
+
+namespace ofp{
 
 Buffer::Buffer(){
 
@@ -15,7 +18,10 @@ Buffer::Buffer(int cap){
 }
 
 Buffer::~Buffer(){
-
+    for(auto&& pair : pending_msgs) {
+      delete pair.second;
+    }
+    pending_msgs.clear();
 }
 
 int Buffer::size(){
@@ -44,8 +50,15 @@ uint32_t Buffer::storeMessage(EthernetIIFrame *msg){
     }
 }
 bool Buffer::deleteMessage(EthernetIIFrame *msg){
-    //TODO
-    return true;
+    bool result = false;
+    for (std::map<uint32_t, inet::EthernetIIFrame *>::const_iterator it = pending_msgs.begin(); it != pending_msgs.end(); ++it) {
+      if (it->second == msg) {
+          pending_msgs.erase(it);
+          result = true;
+      }
+    }
+
+    return result;
 }
 
 
@@ -59,3 +72,5 @@ EthernetIIFrame *Buffer::returnMessage(uint32_t buffer_id){
     pending_msgs.erase(buffer_id);
     return frame;
 }
+
+} /*end namespace ofp*/

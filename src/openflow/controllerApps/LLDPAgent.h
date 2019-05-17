@@ -4,13 +4,13 @@
 
 #include <omnetpp.h>
 #include "openflow/controllerApps/AbstractControllerApp.h"
-#include "openflow/messages/LLDP_m.h"
-#include "inet/transportlayer/contract/tcp/TCPSocket.h"
 #include "openflow/openflow/controller/Switch_Info.h"
 #include "openflow/controllerApps/LLDPMibGraph.h"
-#include "openflow/messages/OFP_Features_Reply_m.h"
-#include "openflow/messages/OFP_Packet_In_m.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
 
+using namespace omnetpp;
+
+namespace ofp{
 
 class LLDPAgent:public AbstractControllerApp {
 
@@ -35,5 +35,6 @@ protected:
     int hardTimeout;
 };
 
+} /*end namespace ofp*/
 
 #endif

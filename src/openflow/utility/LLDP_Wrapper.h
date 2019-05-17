@@ -1,12 +1,13 @@
 
 
-#ifndef LLDP_WRAPPER_H_
-#define LLDP_WRAPPER_H_
+#ifndef OPENFLOW_UTILITY_LLDP_WRAPPER_H_
+#define OPENFLOW_UTILITY_LLDP_WRAPPER_H_
 
 #include <omnetpp.h>
 
-using namespace std;
 using namespace omnetpp;
+
+namespace ofp{
 
 class LLDP_Wrapper: public cObject {
 
@@ -14,25 +15,25 @@ public:
     LLDP_Wrapper();
     ~LLDP_Wrapper();
 
-    const string& getDstId() const;
-    void setDstId(const string& dstId);
+    const std::string& getDstId() const;
+    void setDstId(const std::string& dstId);
     int getDstPort() const;
     void setDstPort(int dstPort);
-    const string& getSrcId() const;
-    void setSrcId(const string& srcId);
+    const std::string& getSrcId() const;
+    void setSrcId(const std::string& srcId);
     int getSrcPort() const;
     void setSrcPort(int srcPort);
 
 
 protected:
-    string dstId;
-    string srcId;
+    std::string dstId;
+    std::string srcId;
     int dstPort;
     int srcPort;
 
 };
 
+} /*end namespace ofp*/
 
 
-
-#endif /* BUFFER_H_ */
+#endif /* OPENFLOW_UTILITY_LLDP_WRAPPER_H_ */

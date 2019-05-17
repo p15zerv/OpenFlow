@@ -1,10 +1,12 @@
 
 
-#ifndef CONTROLLERINVOLVEMENTFILTER_H_
-#define CONTROLLERINVOLVEMENTFILTER_H_
+#ifndef OPENFLOW_UTILITY_CONTROLLERINVOLVEMENTFILTER_H_
+#define OPENFLOW_UTILITY_CONTROLLERINVOLVEMENTFILTER_H_
 
 #include <omnetpp.h>
 using namespace omnetpp;
+
+namespace ofp{
 
 class ControllerInvolvementFilter : public cSimpleModule,  public cListener
 {
@@ -23,5 +25,7 @@ protected:
 
 };
 
+} /*end namespace ofp*/
 
-#endif
+
+#endif /** OPENFLOW_UTILITY_CONTROLLERINVOLVEMENTFILTER_H_ **/

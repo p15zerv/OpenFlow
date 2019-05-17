@@ -1,7 +1,12 @@
 
+#ifndef OPENFLOW_HOSTAPPS_PINGAPPRANDOM_H_
+#define OPENFLOW_HOSTAPPS_PINGAPPRANDOM_H_
+
 #include "inet/common/INETDefs.h"
 #include "inet/applications/pingapp/PingApp.h"
 #include "inet/networklayer/common/L3Address.h"
+
+namespace ofp{
 
 /**
  * Generates ping requests and calculates the packet loss and round trip
@@ -23,4 +28,6 @@ class PingAppRandom : public inet::PingApp {
     simsignal_t pingPacketHash;
 };
 
+} /*end namespace ofp*/
 
+#endif /* OPENFLOW_HOSTAPPS_PINGAPPRANDOM_H_ */

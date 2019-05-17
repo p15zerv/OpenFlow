@@ -1,13 +1,15 @@
 #include <omnetpp.h>
 #include "openflow/hyperflow/HyperFlowSynchronizer.h"
-#include "openflow/messages/HF_SyncRequest_m.h"
-#include "openflow/messages/HF_ReportIn_m.h"
-#include "openflow/messages/HF_SyncReply_m.h"
+#include "openflow/messages/hyperflow/HF_SyncRequest_m.h"
+#include "openflow/messages/hyperflow/HF_ReportIn_m.h"
+#include "openflow/messages/hyperflow/HF_SyncReply_m.h"
 
 using namespace std;
+using namespace inet;
+
+namespace ofp{
 
 Define_Module(HyperFlowSynchronizer);
-
 
 
 HyperFlowSynchronizer::HyperFlowSynchronizer(){
@@ -15,7 +17,15 @@ HyperFlowSynchronizer::HyperFlowSynchronizer(){
 }
 
 HyperFlowSynchronizer::~HyperFlowSynchronizer(){
+    for(auto&& msg : msgList) {
+      delete msg;
+    }
+    msgList.clear();
 
+    for(auto&& pair : socketMap){
+        delete pair.second;
+    }
+    socketMap.clear();
 }
 
 void HyperFlowSynchronizer::initialize(){
@@ -116,7 +126,6 @@ void HyperFlowSynchronizer::handleSyncRequest(HF_SyncRequest * msg){
 
 
     reply->setByteLength(sizeof(controlChannel)+sizeof(tempDataChannel));
-    reply->setKind(TCP_C_SEND);
     socket->send(reply);
 }
 
@@ -165,4 +174,6 @@ void HyperFlowSynchronizer::processQueuedMsg(cMessage * msg){
         }
     }
 }
+
+} /*end namespace ofp*/
 

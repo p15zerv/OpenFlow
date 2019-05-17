@@ -1,19 +1,20 @@
 
-#ifndef KNLLDPAGENT_H_
-#define KNLLDPAGENT_H_
+#ifndef OPENFLOW_KANDOO_KNLLDPAGENT_H_
+#define OPENFLOW_KANDOO_KNLLDPAGENT_H_
 
 #include <omnetpp.h>
 #include "openflow/controllerApps/LLDPAgent.h"
 #include "openflow/controllerApps/AbstractControllerApp.h"
-#include "openflow/messages/LLDP_m.h"
+#include "openflow/messages/lldp/LLDP_m.h"
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 #include "openflow/openflow/controller/Switch_Info.h"
 #include "openflow/controllerApps/LLDPMibGraph.h"
-#include "openflow/messages/OFP_Features_Reply_m.h"
-#include "openflow/messages/OFP_Packet_In_m.h"
+#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
 #include "openflow/kandoo/KandooAgent.h"
 #include "openflow/utility/LLDP_Wrapper.h"
 
+namespace ofp{
 
 class KN_LLDPAgent:public LLDPAgent {
 
@@ -32,5 +33,6 @@ protected:
     std::string appName;
 };
 
+} /*end namespace ofp*/
 
-#endif
+#endif /** OPENFLOW_KANDOO_KNLLDPAGENT_H_ **/

@@ -5,6 +5,9 @@
 #include "openflow/controllerApps/AbstractControllerApp.h"
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 
+using namespace omnetpp;
+
+namespace ofp{
 
 class AbstractTCPControllerApp: public AbstractControllerApp {
 
@@ -30,10 +33,10 @@ protected:
     std::list<cMessage *> msgList;
     double serviceTime;
 
-    TCPSocket socket;
+    inet::TCPSocket socket;
 
-    TCPSocket *findSocketFor(cMessage *msg);
-    std::map< int,TCPSocket * > socketMap;
+    inet::TCPSocket *findSocketFor(cMessage *msg);
+    std::map< int, inet::TCPSocket * > socketMap;
 
 
 public:
@@ -41,6 +44,8 @@ public:
     ~AbstractTCPControllerApp();
 
 };
+
+} /*end namespace ofp*/
 
 
 #endif

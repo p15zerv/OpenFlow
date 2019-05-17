@@ -1,11 +1,15 @@
 
-#ifndef OPENFLOWGRAPHANALYZER_H_
-#define OPENFLOWGRAPHANALYZER_H_
+#ifndef OPENFLOW_UTILITY_OPENFLOWGRAPHANALYZER_H_
+#define OPENFLOW_UTILITY_OPENFLOWGRAPHANALYZER_H_
 
 #include <omnetpp.h>
 #include "openflow/openflow/switch/OF_Switch.h"
 
+using namespace omnetpp;
+
 class Node;
+
+namespace ofp{
 
 class OpenFlowGraphAnalyzer : public cSimpleModule
 {
@@ -20,8 +24,8 @@ protected:
         std::list<std::list<cTopology::Node *> > computedPaths;
         std::list<cTopology::Node * > getShortestPath(cTopology::Node * src, cTopology::Node * trg);
 
-        int maxPathLength;
-        int minPathLength;
+        uint32_t maxPathLength;
+        uint32_t minPathLength;
         double avgPathLength;
         int numClientNodes;
         int numSwitchNodes;
@@ -32,10 +36,11 @@ protected:
         std::map<std::string,int> clMap;
 
 
-        virtual int numInitStages() const  {return NUM_INIT_STAGES;}
+        virtual int numInitStages() const  {return inet::NUM_INIT_STAGES;}
         virtual void initialize(int stage);
         virtual void handleMessage(cMessage *msg);
 };
 
+} /*end namespace ofp*/
 
-#endif /* SPANNINGTREE_H_ */
+#endif /* OPENFLOW_UTILITY_OPENFLOWGRAPHANALYZER_H_ */

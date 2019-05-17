@@ -1,0 +1,33 @@
+<features cppSourceRoots="src" definesFile="src/openflow/features.h">
+    <feature
+        id="hyperflow"
+        name="HyperFlow"
+        description = "Feature for Hyperflow distributed control plane framework"
+        initiallyEnabled = "true"
+        requires = ""
+        labels = ""
+        nedPackages = "
+                       openflow.hyperflow
+                       openflow.messages.hyperflow
+                       openflow.hyperflow
+                      "
+        extraSourceFolders = ""
+        compileFlags = "-DWITH_HYPERFLOW"
+        linkerFlags = ""
+        />
+    <feature
+        id="kandoo"
+        name="Kandoo"
+        description = "Feature for Kandoo scalable offloading for controller applications framework"
+        initiallyEnabled = "true"
+        requires = ""
+        labels = ""
+        nedPackages = "
+                       openflow.kandoo
+                       openflow.messages.kandoo
+                      "
+        extraSourceFolders = ""
+        compileFlags = "-DWITH_KANDOO"
+        linkerFlags = ""
+        />
+</features>

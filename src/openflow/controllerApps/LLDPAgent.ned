@@ -18,6 +18,7 @@ package openflow.controllerApps;
 simple LLDPAgent like AbstractControllerApp
 {
     parameters:
+        @class(ofp::LLDPAgent);
         @display("i=block/app");
         
         //default value cisco

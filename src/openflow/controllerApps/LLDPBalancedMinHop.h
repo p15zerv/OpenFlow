@@ -8,8 +8,10 @@
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 #include "openflow/openflow/controller/Switch_Info.h"
 #include "openflow/controllerApps/LLDPMib.h"
-#include "openflow/messages/OFP_Packet_In_m.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
 #include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
+
+namespace ofp{
 
 struct LLDPPathSegment{
     std::string chassisId;
@@ -46,5 +48,6 @@ protected:
     std::map<std::pair<std::string,std::string>, std::list<LLDPPathSegment> > routeCache;
 };
 
+} /*end namespace ofp*/
 
 #endif

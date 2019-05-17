@@ -1,15 +1,19 @@
 
-#ifndef OF_CONTROLLER_H_
-#define OF_CONTROLLER_H_
+#ifndef OPENFLOW_OPENFLOW_CONTROLLER_OF_CONTROLLER_H_
+#define OPENFLOW_OPENFLOW_CONTROLLER_OF_CONTROLLER_H_
 
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
-#include "openflow/messages/Open_Flow_Message_m.h"
-#include "openflow/messages/OFP_Packet_In_m.h"
-#include "openflow/messages/OFP_Hello_m.h"
+#include "openflow/messages/openflowprotocol/OFP_Message.h"
 #include "openflow/openflow/controller/Switch_Info.h"
 #include <omnetpp.h>
 
-class AbstractControllerApp;
+using namespace omnetpp;
+
+namespace ofp{
+    class AbstractControllerApp;
+}
+
+namespace ofp{
 
 class OF_Controller: public cSimpleModule
 {
@@ -18,13 +22,13 @@ public:
     ~OF_Controller();
     virtual void finish();
 
-    void sendPacketOut(Open_Flow_Message *of_msg, TCPSocket * socket);
+    void sendPacketOut(OFP_Message *of_msg, inet::TCPSocket * socket);
 
     void registerApp(AbstractControllerApp * app);
 
-    TCPSocket *findSocketFor(cMessage *msg) const;
+    inet::TCPSocket *findSocketFor(cMessage *msg) const;
     Switch_Info *findSwitchInfoFor(cMessage *msg) ;
-    TCPSocket *findSocketForChassisId(std::string chassisId) const;
+    inet::TCPSocket *findSocketForChassisId(std::string chassisId) const;
 
     std::vector<Switch_Info >* getSwitchesList() ;
     std::vector<AbstractControllerApp *>* getAppList() ;
@@ -32,14 +36,20 @@ public:
 
 
 protected:
+    /**
+     * Observer Signals
+     */
     simsignal_t PacketInSignalId;
     simsignal_t PacketOutSignalId;
     simsignal_t PacketHelloSignalId;
     simsignal_t PacketFeatureRequestSignalId;
     simsignal_t PacketFeatureReplySignalId;
     simsignal_t BootedSignalId;
+    simsignal_t ExperimenterSignalID;
 
-    //stats
+    /**
+     * Statistics
+     */
     simsignal_t queueSize;
     simsignal_t waitingTime;
     long numPacketIn;
@@ -49,26 +59,39 @@ protected:
     double lastChangeTime;
     std::map<int,double> avgQueueSize;
 
-    bool busy;
-    double serviceTime;
-    std::list<cMessage *> msgList;
+    /**
+     * Message Processing
+     */
+    bool _booted = false;
+    bool _busy;
+    double _serviceTime;
+    std::list<cMessage *> _msgList;
 
-    std::vector<Switch_Info > switchesList;
-    std::vector<AbstractControllerApp *> apps;
+    /**
+     * Network and Controller State
+     */
+    std::vector<Switch_Info > _switchesList;
+    std::vector<AbstractControllerApp *> _apps;
 
-    TCPSocket socket;
+    /**
+     * Connection
+     */
+    inet::TCPSocket _socket;
 
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
     void processQueuedMsg(cMessage *data_msg);
     void calcAvgQueueSize(int size);
-    void sendHello(Open_Flow_Message *msg);
-    void registerConnection(Open_Flow_Message *msg);
+    void sendHello(OFP_Message *msg);
+    void registerConnection(OFP_Message *msg);
     void sendFeatureRequest(cMessage *msg);
-    virtual void handleFeaturesReply(Open_Flow_Message *of_msg);
-    virtual void handlePacketIn(Open_Flow_Message *of_msg);
+    virtual void handleFeaturesReply(OFP_Message *of_msg);
+    virtual void handlePacketIn(OFP_Message *of_msg);
+
+private:
+    void handleExperimenterMsg(OFP_Message* of_msg);
 };
 
+} /*end namespace ofp*/
 
-
-#endif /* OF_CONTROLLER_H_ */
+#endif /* OPENFLOW_OPENFLOW_CONTROLLER_OF_CONTROLLER_H_ */

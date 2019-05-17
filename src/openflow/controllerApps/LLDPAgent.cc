@@ -1,11 +1,18 @@
 #include "openflow/controllerApps/LLDPAgent.h"
 #include <algorithm>
+#include "openflow/messages/lldp/LLDP_m.h"
+#include "inet/transportlayer/contract/tcp/TCPSocket.h"
+#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
+using namespace inet;
+
+namespace ofp{
+
+Define_Module(LLDPAgent);
 
 #define MSGKIND_TRIGGERLLDP 101
 #define MSGKIND_LLDPAGENTBOOTED 201
-
-Define_Module(LLDPAgent);
 
 LLDPAgent::LLDPAgent(){
 
@@ -59,7 +66,7 @@ void LLDPAgent::sendLLDP(){
             lldpPacket->setPortID(j);
             lldpPacket->setChassisID((*i).getMacAddress().c_str());
 
-            EtherFrame *frame = NULL;
+            EthernetIIFrame *frame = NULL;
             EthernetIIFrame *eth2Frame = new EthernetIIFrame(lldpPacket->getName());
             eth2Frame->setSrc(MACAddress((*i).getMacAddress().c_str()));  // if blank, will be filled in by MAC
             //eth2Frame->setDest(MACAddress("01:80:c2:00:00:0e"));
@@ -76,20 +83,13 @@ void LLDPAgent::sendLLDP(){
 
 
             //create packet out*/
-            OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-            packetOut->getHeader().version = OFP_VERSION;
-            packetOut->getHeader().type = OFPT_PACKET_OUT;
-            packetOut->setBuffer_id(OFP_NO_BUFFER);
-            packetOut->setByteLength(24);
-            packetOut->encapsulate(frame);
-            packetOut->setIn_port(-1);
-            ofp_action_output *action_output = new ofp_action_output();
-            action_output->port = j;
-            packetOut->setActionsArraySize(1);
-            packetOut->setActions(0, *action_output);
+            uint32_t output = j;
+            OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(&output, 1, -1, OFP_NO_BUFFER, frame);
 
             //send the packet
             controller->sendPacketOut(packetOut,socket);
+
+            delete frame;
         }
     }
 }
@@ -126,11 +126,22 @@ void LLDPAgent::handlePacketIn(OFP_Packet_In * packet_in_msg){
 void LLDPAgent::triggerFlowMod(Switch_Info * swInfo) {
     uint32_t outport = OFPP_CONTROLLER;
     oxm_basic_match match = oxm_basic_match();
-    match.OFB_ETH_TYPE = 0x88CC;
+    match.dl_type = 0x88CC;
     match.wildcards= 0;
+    //TODO fix wildcards for OFP151
+#if OFP_VERSION_IN_USE == OFP_100
     match.wildcards |= OFPFW_IN_PORT;
-    match.wildcards |=  OFPFW_DL_SRC;
-    match.wildcards |=  OFPFW_DL_DST;
+//    match.wildcards |= OFPFW_DL_TYPE;
+    match.wildcards |= OFPFW_DL_SRC;
+    match.wildcards |= OFPFW_DL_DST;
+    match.wildcards |= OFPFW_DL_VLAN;
+    match.wildcards |=  OFPFW_DL_VLAN_PCP;
+    match.wildcards |= OFPFW_NW_PROTO;
+    match.wildcards |= OFPFW_NW_SRC_ALL;
+    match.wildcards |= OFPFW_NW_DST_ALL;
+    match.wildcards |= OFPFW_TP_SRC;
+    match.wildcards |= OFPFW_TP_DST;
+#endif
 
     sendFlowModMessage(OFPFC_ADD, match, outport, swInfo->getSocket(),idleTimeout,hardTimeout);
 }
@@ -163,4 +174,6 @@ void LLDPAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cOb
 LLDPMibGraph * LLDPAgent::getMibGraph(){
     return &mibGraph;
 }
+
+} /*end namespace ofp*/
 

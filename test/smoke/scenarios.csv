@@ -49,10 +49,6 @@
 /scenarios/testcases/,               -f Scenario_TestCase_Diamond.ini -c General -r 0
 /scenarios/testcases/,               -f Scenario_TestCase_Forwarding.ini -c General -r 0
 /scenarios/testcases/,               -f Scenario_TestCase_Hub.ini -c General -r 0
-/scenarios/testcases/,               -f Scenario_TestCase_HyperFlow_ARPResponder.ini -c General -r 0
-/scenarios/testcases/,               -f Scenario_TestCase_HyperFlow_Forwarding.ini -c General -r 0
-/scenarios/testcases/,               -f Scenario_TestCase_KandooDiamond.ini -c General -r 0
-/scenarios/testcases/,               -f Scenario_TestCase_KandooSplit.ini -c General -r 0
 /scenarios/testcases/,               -f Scenario_TestCase_LLDP.ini -c General -r 0
 /scenarios/testcases/,               -f Scenario_TestCase_LearningSwitch.ini -c General -r 0
 /scenarios/testcases/,               -f Scenario_TestCase_TrafficGenerator.ini -c General -r 0
@@ -91,7 +87,6 @@
 /scenarios/topologyzoo/,             -f Cesnet200706.ini -c cfg1 -r 0
 /scenarios/topologyzoo/,             -f Cesnet200706_KN.ini -c cfg1 -r 0
 /scenarios/topologyzoo/,             -f Chinanet.ini -c cfg1 -r 0
-/scenarios/topologyzoo/,             -f Chinanet_KN.ini -c cfg1 -r 0
 /scenarios/topologyzoo/,             -f CrlNetworkServices.ini -c cfg1 -r 0
 /scenarios/topologyzoo/,             -f CrlNetworkServices_KN.ini -c cfg1 -r 0
 /scenarios/topologyzoo/,             -f Darkstrand.ini -c cfg1 -r 0

@@ -10,7 +10,7 @@
 using namespace __gnu_cxx;
 
 
-
+namespace ofp{
 
 
 
@@ -35,5 +35,7 @@ class LLDPMibGraph {
         long numOfEdges;
         long version;
 };
+
+} /*end namespace ofp*/
 
 #endif /* FLOW_TABLE_H_ */

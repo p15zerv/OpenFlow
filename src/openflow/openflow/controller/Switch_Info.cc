@@ -2,6 +2,9 @@
 #include "openflow/openflow/controller/Switch_Info.h"
 
 using namespace std;
+using namespace inet;
+
+namespace ofp{
 
 Switch_Info::Switch_Info(){
 
@@ -48,3 +51,6 @@ TCPSocket* Switch_Info::getSocket() const {
 void Switch_Info::setSocket(TCPSocket* socket) {
         this->socket = socket;
 }
+
+} /*end namespace ofp*/
+

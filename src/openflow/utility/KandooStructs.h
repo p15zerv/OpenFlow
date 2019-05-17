@@ -1,7 +1,8 @@
 
-#ifndef KANDOOSTRUCTS_H_
-#define KANDOOSTRUCTS_H_
+#ifndef OPENFLOW_UTILITY_KANDOOSTRUCTS_H_
+#define OPENFLOW_UTILITY_KANDOOSTRUCTS_H_
 
+namespace ofp{
 
 struct KandooEntry{
     std::string srcController;
@@ -14,6 +15,6 @@ struct KandooEntry{
     int type; //0 inform, 1 request, 2 reply
 };
 
+} /*end namespace ofp*/
 
-
-#endif /* OF_CONTROLLER_H_ */
+#endif /* OPENFLOW_UTILITY_KANDOOSTRUCTS_H_ */

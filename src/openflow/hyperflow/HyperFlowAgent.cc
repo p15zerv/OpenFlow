@@ -4,12 +4,19 @@
 #include "algorithm"
 #include "string"
 
+
+using namespace inet;
+
+namespace ofp{
+
+Define_Module(HyperFlowAgent);
+
+
 #define MSGKIND_REPORTINEVERY 701
 #define MSGKIND_SYNCEVERY 702
 #define MSGKIND_CHECKALIVEEVERY 703
 #define MSGKIND_HFCONNECT 704
 
-Define_Module(HyperFlowAgent);
 
 HyperFlowAgent::HyperFlowAgent(){
 
@@ -129,7 +136,6 @@ void HyperFlowAgent::sendReportIn(){
     }
 
     reportIn->setByteLength(1+sizeof(reportIn->getSwitchInfoList()));
-    reportIn->setKind(TCP_C_SEND);
 
     socket.send(reportIn);
 }
@@ -140,7 +146,6 @@ void HyperFlowAgent::sendSyncRequest(){
         waitingForSyncResponse = true;
         HF_SyncRequest * syncRequest = new HF_SyncRequest("SyncRequest");
         syncRequest->setByteLength(1);
-        syncRequest->setKind(TCP_C_SEND);
         syncRequest->setLastSyncCounter(lastSyncCounter);
 
         socket.send(syncRequest);
@@ -213,7 +218,6 @@ void HyperFlowAgent::synchronizeDataChannelEntry(DataChannelEntry entry){
     Enter_Method_Silent();
     HF_ChangeNotification *change = new HF_ChangeNotification("HF_Change");
     change->setByteLength(sizeof(entry));
-    change->setKind(TCP_C_SEND);
     change->setEntry(entry);
     socket.send(change);
 }
@@ -225,4 +229,6 @@ void HyperFlowAgent::handleRecover(std::string controllerId){
 void HyperFlowAgent::handleFailure(std::string controllerId){
     //TODO
 }
+
+} /*end namespace ofp*/
 

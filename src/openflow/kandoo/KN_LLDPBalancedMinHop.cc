@@ -1,7 +1,11 @@
 #include "openflow/kandoo/KN_LLDPBalancedMinHop.h"
 #include <algorithm>
 #include <string>
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
+using namespace inet;
+
+namespace ofp{
 
 Define_Module(KN_LLDPBalancedMinHop);
 
@@ -39,7 +43,7 @@ void KN_LLDPBalancedMinHop::handlePacketIn(OFP_Packet_In * packet_in_msg){
     }
 
     //ignore arp requests
-    if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && packet_in_msg->getMatch().OFB_ARP_OP == ARP_REQUEST){
+    if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && packet_in_msg->getMatch().nw_proto == ARP_REQUEST){
         return;
     }
 
@@ -80,12 +84,15 @@ void KN_LLDPBalancedMinHop::handlePacketIn(OFP_Packet_In * packet_in_msg){
 
         //set flow mods for all switches under my controller's command
         oxm_basic_match match = oxm_basic_match();
-        match.OFB_ETH_DST = headerFields.dst_mac;
-        match.OFB_ETH_SRC = headerFields.src_mac;
+        match.dl_dst = headerFields.dst_mac;
+        match.dl_src = headerFields.src_mac;
 
         match.wildcards= 0;
+        //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
         match.wildcards |= OFPFW_IN_PORT;
         match.wildcards |= OFPFW_DL_TYPE;
+#endif
 
         TCPSocket * socket = controller->findSocketFor(packet_in_msg);
         sendFlowModMessage(OFPFC_ADD, match, seg.outport, socket,idleTimeout,hardTimeout);
@@ -98,12 +105,15 @@ void KN_LLDPBalancedMinHop::handlePacketIn(OFP_Packet_In * packet_in_msg){
             seg = route.front();
             route.pop_front();
             oxm_basic_match match = oxm_basic_match();
-            match.OFB_ETH_DST = headerFields.dst_mac;
-            match.OFB_ETH_SRC = headerFields.src_mac;
+            match.dl_dst = headerFields.dst_mac;
+            match.dl_src = headerFields.src_mac;
 
             match.wildcards= 0;
+            //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
             match.wildcards |= OFPFW_IN_PORT;
             match.wildcards |= OFPFW_DL_TYPE;
+#endif
 
             computedRoute += seg.chassisId + " -> ";
 
@@ -164,7 +174,7 @@ void KN_LLDPBalancedMinHop::receiveSignal(cComponent *src, simsignal_t id, cObje
                         }
 
                         //ignore arp requests
-                        if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && pckin->getMatch().OFB_ARP_OP == ARP_REQUEST){
+                        if(ignoreArpRequests && headerFields.eth_type == ETHERTYPE_ARP && pckin->getMatch().nw_proto == ARP_REQUEST){
                             return;
                         }
 
@@ -222,12 +232,15 @@ void KN_LLDPBalancedMinHop::receiveSignal(cComponent *src, simsignal_t id, cObje
 
                             //set flow mods for all switches under my controller's command
                             oxm_basic_match match = oxm_basic_match();
-                            match.OFB_ETH_DST = headerFields.dst_mac;
-                            match.OFB_ETH_SRC = headerFields.src_mac;
+                            match.dl_dst = headerFields.dst_mac;
+                            match.dl_src = headerFields.src_mac;
 
                             match.wildcards= 0;
+                            //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
                             match.wildcards |= OFPFW_IN_PORT;
                             match.wildcards |= OFPFW_DL_TYPE;
+#endif
 
 
                             entry = KandooEntry();
@@ -238,7 +251,8 @@ void KN_LLDPBalancedMinHop::receiveSignal(cComponent *src, simsignal_t id, cObje
                             entry.srcSwitch = "";
                             entry.type=2;
                             entry.srcController = knpck->getKnEntry().trgController;
-                            entry.payload = createFlowMod(OFPFC_ADD, match, seg.outport,idleTimeout,hardTimeout);
+                            uint32_t out = seg.outport;
+                            entry.payload = OFMessageFactory::instance()->createFlowModMessage(OFPFC_ADD, match, 0, &out, 1,idleTimeout,hardTimeout);
 
                             knAgent->sendReply(knpck,entry);
                             computedRoute += seg.chassisId + ":" + std::to_string(seg.outport) + " -> ";
@@ -248,12 +262,15 @@ void KN_LLDPBalancedMinHop::receiveSignal(cComponent *src, simsignal_t id, cObje
                                 seg = route.front();
                                 route.pop_front();
                                 oxm_basic_match match = oxm_basic_match();
-                                match.OFB_ETH_DST = headerFields.dst_mac;
-                                match.OFB_ETH_SRC = headerFields.src_mac;
+                                match.dl_dst = headerFields.dst_mac;
+                                match.dl_src = headerFields.src_mac;
 
                                 match.wildcards= 0;
+                                //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
                                 match.wildcards |= OFPFW_IN_PORT;
                                 match.wildcards |= OFPFW_DL_TYPE;
+#endif
 
                                 computedRoute += seg.chassisId + ":" + std::to_string(seg.outport) + " -> ";
 
@@ -265,7 +282,8 @@ void KN_LLDPBalancedMinHop::receiveSignal(cComponent *src, simsignal_t id, cObje
                                 entry.srcSwitch = "";
                                 entry.type=2;
                                 entry.srcController = knpck->getKnEntry().trgController;
-                                entry.payload = createFlowMod(OFPFC_ADD, match, seg.outport,idleTimeout,hardTimeout);
+                                uint32_t out = seg.outport;
+                                entry.payload = OFMessageFactory::instance()->createFlowModMessage(OFPFC_ADD, match, 0, &out, 1,idleTimeout,hardTimeout);
 
                                 knAgent->sendReplyToSwitchAuthoritive(seg.chassisId,entry);
                             }
@@ -293,6 +311,6 @@ void KN_LLDPBalancedMinHop::receiveSignal(cComponent *src, simsignal_t id, cObje
 }
 
 
-
+} /*end namespace ofp*/
 
 

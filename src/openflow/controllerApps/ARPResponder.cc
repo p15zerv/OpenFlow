@@ -1,10 +1,16 @@
 #include "openflow/controllerApps/ARPResponder.h"
 #include <algorithm>
+#include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
+using namespace inet;
+
+namespace ofp{
+
+Define_Module(ARPResponder);
 
 #define MSGKIND_ARPRESPONDERBOOTED 801
 
-Define_Module(ARPResponder);
 
 ARPResponder::ARPResponder(){
 
@@ -58,21 +64,17 @@ void ARPResponder::handlePacketIn(OFP_Packet_In * packet_in_msg){
                     dropPacket(packet_in_msg);
 
                     //encap the arp reply
-                    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-                    packetOut->getHeader().version = OFP_VERSION;
-                    packetOut->getHeader().type = OFPT_PACKET_OUT;
-                    packetOut->setBuffer_id(OFP_NO_BUFFER);
-                    packetOut->setByteLength(24);
-                    packetOut->encapsulate(createArpReply(headerFields.arp_dst_adr,headerFields.arp_src_adr,ipToMac[headerFields.arp_dst_adr.str()],headerFields.src_mac));
-                    packetOut->setIn_port(-1);
-                    ofp_action_output *action_output = new ofp_action_output();
-                    action_output->port = headerFields.inport;
-                    packetOut->setActionsArraySize(1);
-                    packetOut->setActions(0, *action_output);
+                    inet::EthernetIIFrame* arpReply = createArpReply(
+                        headerFields.arp_dst_adr, headerFields.arp_src_adr,
+                        ipToMac[headerFields.arp_dst_adr.str()],
+                        headerFields.src_mac);
+
+                    OFP_Packet_Out* packetOut = OFMessageFactory::instance()->createPacketOut(&headerFields.inport, 1, -1, OFP_NO_BUFFER, arpReply);
 
                     //send the packet
                     answeredArp++;
                     controller->sendPacketOut(packetOut,headerFields.swInfo->getSocket());
+                    delete arpReply;
                 } else {
                     //we need to flood the packet
                     floodedArp++;
@@ -97,7 +99,7 @@ void ARPResponder::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, 
     }
 }
 
-EtherFrame * ARPResponder::createArpReply(IPv4Address srcIp, IPv4Address dstIp, MACAddress srcMac,MACAddress dstMac){
+EthernetIIFrame * ARPResponder::createArpReply(IPv4Address srcIp, IPv4Address dstIp, MACAddress srcMac,MACAddress dstMac){
     ARPPacket *arpReply = new ARPPacket("controllerArpReply");
     arpReply->setOpcode(ARP_REPLY);
     arpReply->setName("arpReply");
@@ -109,8 +111,7 @@ EtherFrame * ARPResponder::createArpReply(IPv4Address srcIp, IPv4Address dstIp, 
     delete arpReply->removeControlInfo();
 
 
-
-    EtherFrame *frame = NULL;
+    EthernetIIFrame *frame = NULL;
     EthernetIIFrame *eth2Frame = new EthernetIIFrame(arpReply->getName());
     eth2Frame->setSrc(arpReply->getSrcMACAddress());  // if blank, will be filled in by MAC
     eth2Frame->setDest(arpReply->getDestMACAddress());
@@ -135,4 +136,5 @@ void ARPResponder::finish(){
     recordScalar("arpAnswered", answeredArp);
 }
 
+} /*end namespace ofp*/
 

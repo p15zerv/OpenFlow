@@ -1,16 +1,22 @@
 
 
-#ifndef OF_SWITCH_H_
-#define OF_SWITCH_H_
+#ifndef OPENFLOW_OPENFLOW_SWITCH_OF_SWITCH_H_
+#define OPENFLOW_OPENFLOW_SWITCH_OF_SWITCH_H_
 
 #include <omnetpp.h>
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 
 #include "openflow/openflow/switch/Buffer.h"
-#include "openflow/messages/Open_Flow_Message_m.h"
+#include "openflow/messages/openflowprotocol/OFP_Message.h"
 #include "openflow/openflow/switch/Flow_Table.h"
 #include <vector>
 
+namespace ofp{
+
+/**
+ * Openflow Switching Engine.
+ * TODO use new FlowTable module.
+ */
 class OF_Switch: public cSimpleModule
 {
 public:
@@ -43,20 +49,21 @@ protected:
 
     Buffer buffer;
     Flow_Table flowTable;
-    TCPSocket socket;
+    inet::TCPSocket socket;
 
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
     void connect(const char *connectToAddress);
 
     void processQueuedMsg(cMessage *data_msg);
-    void handleFeaturesRequestMessage(Open_Flow_Message *of_msg);
-    void handleFlowModMessage(Open_Flow_Message *of_msg);
-    void handlePacketOutMessage(Open_Flow_Message *of_msg);
-    void executePacketOutAction(ofp_action_header *action, EthernetIIFrame *frame, uint32_t inport);
-    void processFrame(EthernetIIFrame *frame);
-    void handleMissMatchedPacket(EthernetIIFrame *frame);
+    void handleFeaturesRequestMessage(OFP_Message *of_msg);
+    void handleFlowModMessage(OFP_Message *of_msg);
+    void handlePacketOutMessage(OFP_Message *of_msg);
+    void executePacketOutAction(ofp_action_output *action, inet::EthernetIIFrame *frame, uint32_t inport);
+    void processFrame(inet::EthernetIIFrame *frame);
+    void handleMissMatchedPacket(inet::EthernetIIFrame *frame);
 };
 
+} /*end namespace ofp*/
 
-#endif /* OF_SWITCH_H_ */
+#endif /* OPENFLOW_OPENFLOW_SWITCH_OF_SWITCH_H_ */

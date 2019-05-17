@@ -5,6 +5,8 @@
 #include <omnetpp.h>
 #include "openflow/controllerApps/AbstractControllerApp.h"
 
+namespace ofp{
+
 class Hub:public AbstractControllerApp {
 
 
@@ -17,5 +19,6 @@ protected:
     void initialize();
 };
 
+} /*end namespace ofp*/
 
 #endif

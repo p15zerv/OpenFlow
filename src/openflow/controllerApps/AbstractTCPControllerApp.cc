@@ -1,10 +1,14 @@
 #include "openflow/controllerApps/AbstractTCPControllerApp.h"
 
-#define MSGKIND_TCPSERVICETIME                 3098
+using namespace std;
+using namespace inet;
+
+namespace ofp{
 
 Define_Module(AbstractTCPControllerApp);
 
-using namespace std;
+#define MSGKIND_TCPSERVICETIME                 3098
+
 
 AbstractTCPControllerApp::AbstractTCPControllerApp()
 {
@@ -13,7 +17,15 @@ AbstractTCPControllerApp::AbstractTCPControllerApp()
 
 AbstractTCPControllerApp::~AbstractTCPControllerApp()
 {
+    for(auto&& msg : msgList) {
+      delete msg;
+    }
+    msgList.clear();
 
+    for(auto&& pair : socketMap){
+        delete pair.second;
+    }
+    socketMap.clear();
 }
 
 
@@ -126,3 +138,6 @@ void AbstractTCPControllerApp::finish(){
         recordScalar(name.str().c_str(),(iterMap2->second/1.0));
     }
 }
+
+} /*end namespace ofp*/
+

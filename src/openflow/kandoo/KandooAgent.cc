@@ -4,9 +4,12 @@
 #include "algorithm"
 #include "string"
 
+namespace ofp{
+
 #define MSGKIND_KNCONNECT 1404
 
 Define_Module(KandooAgent);
+using namespace inet;
 
 KandooAgent::KandooAgent(){
 
@@ -132,7 +135,6 @@ void KandooAgent::sendRequest(KandooEntry entry){
     KN_Packet * knpck = new KN_Packet("KN Req");
     knpck->setKnEntry(entry);
     knpck->setByteLength(1);
-    knpck->setKind(TCP_C_SEND);
 
     socket.send(knpck);
 }
@@ -143,7 +145,6 @@ void KandooAgent::sendReply(KN_Packet * knpck,KandooEntry entry){
     KN_Packet * knrep = new KN_Packet("KN Rep");
     knrep->setKnEntry(entry);
     knrep->setByteLength(1);
-    knrep->setKind(TCP_C_SEND);
 
     TCPSocket * tempSocket = findSocketFor(knpck);
     tempSocket->send(knrep);
@@ -155,7 +156,6 @@ void KandooAgent::sendReplyToSwitchAuthoritive(std::string switchId, KandooEntry
     KN_Packet * knrep = new KN_Packet("KN Rep");
     knrep->setKnEntry(entry);
     knrep->setByteLength(1);
-    knrep->setKind(TCP_C_SEND);
 
     TCPSocket * tempSocket = NULL;
     std::list<SwitchControllerMapping>::iterator iter;
@@ -177,7 +177,7 @@ void KandooAgent::handleKandooPacket(KN_Packet * knpck){
     emit(kandooEventSignalId,knpck);
 }
 
-
+} /*end namespace ofp*/
 
 
 

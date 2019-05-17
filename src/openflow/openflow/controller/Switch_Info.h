@@ -1,11 +1,12 @@
 
-#ifndef SWITCH_INFO_H_
-#define SWITCH_INFO_H_
+#ifndef OPENFLOW_OPENFLOW_CONTROLLER_SWITCH_INFO_H_
+#define OPENFLOW_OPENFLOW_CONTROLLER_SWITCH_INFO_H_
 
-#include "openflow/openflow/protocol/openflow.h"
+#include <openflow/openflow/protocol/OpenFlow.h>
+
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 
-using namespace __gnu_cxx;
+namespace ofp{
 
 class Switch_Info {
     public:
@@ -19,17 +20,19 @@ class Switch_Info {
         void setMacAddress(std::string macAddress);
         int getNumOfPorts() const;
         void setNumOfPorts(int numOfPorts);
-        TCPSocket* getSocket() const;
-        void setSocket(TCPSocket* socket);
+        inet::TCPSocket* getSocket() const;
+        void setSocket(inet::TCPSocket* socket);
 
 
     protected:
         int connID;
         int numOfPorts;
         std::string macAddress;
-        TCPSocket *socket;
+        inet::TCPSocket *socket;
         int version;
 
 };
 
-#endif /* FLOW_TABLE_H_ */
+} /*end namespace ofp*/
+
+#endif /* OPENFLOW_OPENFLOW_CONTROLLER_SWITCH_INFO_H_ */

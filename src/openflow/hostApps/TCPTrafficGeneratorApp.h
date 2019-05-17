@@ -1,7 +1,7 @@
 
 
-#ifndef TCP_TRAFFIC_GENERATOR_APP_H_
-#define TCP_TRAFFIC_GENERATOR_APP_H_
+#ifndef OPENFLOW_HOSTAPPS_TCP_TRAFFIC_GENERATOR_APP_H_
+#define OPENFLOW_HOSTAPPS_TCP_TRAFFIC_GENERATOR_APP_H_
 
 #include "inet/common/INETDefs.h"
 #include <iostream>
@@ -13,6 +13,8 @@
 
 using namespace std;
 using namespace inet;
+
+namespace ofp{
 
 /**
  * Single-connection TCP application.
@@ -53,5 +55,7 @@ class INET_API TCPTrafficGeneratorApp : public cSimpleModule, public TCPSocket::
 
 };
 
-#endif
+} /*end namespace ofp*/
+
+#endif /** OPENFLOW_HOSTAPPS_TCP_TRAFFIC_GENERATOR_APP_H_**/
 

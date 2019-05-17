@@ -1,0 +1,332 @@
+From 297a0b46635f472dfa3199954948a9f2ed3c1c91 Mon Sep 17 00:00:00 2001
+From: Timo Haeckel <timo.haeckel@haw-hamburg.de>
+Date: Mon, 24 Sep 2018 11:06:58 +0200
+Subject: [PATCH] changes for openflow
+
+---
+ .cproject                                     | 44 +++++++++++--
+ .oppbuildspec                                 |  2 +-
+ .../base/NetworkConfiguratorBase.cc           | 64 +++++++++++++++----
+ .../ipv4/IPv4NetworkConfigurator.cc           |  5 +-
+ .../configurator/ipv4/IPv4NodeConfigurator.cc | 19 ++++--
+ .../networklayer/ipv4/IPv4RoutingTable.cc     | 17 +++--
+ src/inet/transportlayer/tcp/TCP.cc            | 15 +++--
+ 7 files changed, 130 insertions(+), 36 deletions(-)
+
+diff --git a/.cproject b/.cproject
+index 02caa1fcb..dd927fd0f 100644
+--- a/.cproject
++++ b/.cproject
+@@ -27,14 +27,14 @@
+ 							</builder>
+ 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1843986175" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+ 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1544720771" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
+-								<option id="gnu.cpp.compiler.option.preprocessor.def.33891026" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols"/>
++								<option id="gnu.cpp.compiler.option.preprocessor.def.33891026" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false"/>
+ 								<option id="gnu.cpp.compiler.option.include.paths.1304941279" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+ 									<listOptionValue builtIn="false" value="../../src"/>
+ 								</option>
+ 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1163034331" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+ 							</tool>
+ 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.892294620" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+-								<option id="gnu.c.compiler.option.preprocessor.def.symbols.193803687" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols"/>
++								<option id="gnu.c.compiler.option.preprocessor.def.symbols.193803687" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false"/>
+ 								<option id="gnu.c.compiler.option.include.paths.552444216" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+ 									<listOptionValue builtIn="false" value="../../src"/>
+ 								</option>
+@@ -55,8 +55,24 @@
+ 							</tool>
+ 						</toolChain>
+ 					</folderInfo>
++					<folderInfo id="org.omnetpp.cdt.gnu.config.debug.229043752.1136532042" name="/" resourcePath="src">
++						<toolChain id="org.omnetpp.cdt.gnu.toolchain.debug.1168064130" name="GCC for OMNeT++" superClass="org.omnetpp.cdt.gnu.toolchain.debug" unusedChildren="">
++							<tool id="cdt.managedbuild.tool.gnu.archiver.base.686292240" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1843986175"/>
++							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.924297917" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.1544720771">
++								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1057414278" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
++							</tool>
++							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.588457286" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.892294620">
++								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.540299760" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
++							</tool>
++							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.606556580" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1169210834"/>
++							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1586627242" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1065738287"/>
++							<tool id="cdt.managedbuild.tool.gnu.assembler.base.1405252668" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.420284418">
++								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1899057458" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
++							</tool>
++						</toolChain>
++					</folderInfo>
+ 					<sourceEntries>
+-						<entry excluding="inet/transportlayer/tcp_lwip|inet/applications/voipstream|inet/linklayer/ext|inet/transportlayer/tcp_nsc|inet/routing/extras|transport/tcp_nsc|transport/tcp_lwip" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
++						<entry excluding="inet/linklayer/csmaca|inet/linklayer/csma|inet/linklayer/lmac|inet/linklayer/bmac|inet/node/packetdrill|inet/applications/packetdrill|inet/linklayer/tun|inet/applications/tunapp|inet/node/internetcloud|inet/networklayer/internetcloud|inet/networklayer/diffserv|inet/applications/voip|inet/visualizer/transportlayer|inet/visualizer/statistic|inet/visualizer/scene|inet/visualizer/physicallayer|inet/visualizer/networknode|inet/visualizer/networklayer|inet/visualizer/mobility|inet/visualizer/linklayer|inet/visualizer/integrated|inet/visualizer/environment|inet/visualizer/base|inet/physicallayer/idealradio|inet/linklayer/ideal|inet/physicallayer/apskradio|inet/physicallayer/ieee802154|inet/linklayer/ieee802154|inet/node/wireless|inet/common/serializer/headerserializers/ieee80211|inet/physicallayer/ieee80211|inet/linklayer/ieee80211|inet/physicallayer/propagation|inet/physicallayer/pathloss|inet/physicallayer/obstacleloss|inet/physicallayer/neighborcache|inet/physicallayer/modulation|inet/physicallayer/errormodel|inet/physicallayer/energyconsumer|inet/physicallayer/communicationcache|inet/physicallayer/common|inet/physicallayer/base|inet/physicallayer/backgroundnoise|inet/physicallayer/antenna|inet/physicallayer/analogmodel|inet/power/storage|inet/power/generator|inet/power/consumer|inet/power/base|inet/environment/objectcache|inet/environment/ground|inet/environment/common|inet/mobility/static|inet/mobility/single|inet/mobility/group|inet/mobility/base|inet/node/rip|inet/routing/rip|inet/node/gpsr|inet/routing/gpsr|inet/node/aodv|inet/routing/aodv|inet/node/dymo|inet/routing/dymo|inet/routing/pim|inet/node/bgp|inet/routing/bgpv4|inet/node/ospfv2|inet/routing/ospfv2|inet/applications/dhcp|inet/node/rtp|inet/transportlayer/rtp|inet/applications/rtpapp|inet/networklayer/probabilistic|inet/networklayer/flood|inet/networklayer/wiseroute|inet/networklayer/arp/generic|inet/networklayer/configurator/generic|inet/networklayer/generic|inet/node/xmipv6|inet/networklayer/xmipv6|inet/transportlayer/tcp_lwip|inet/applications/voipstream|inet/linklayer/ext|inet/transportlayer/tcp_nsc|inet/routing/extras|transport/tcp_nsc|transport/tcp_lwip" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+ 					</sourceEntries>
+ 				</configuration>
+ 			</storageModule>
+@@ -84,14 +100,14 @@
+ 							<builder id="org.omnetpp.cdt.gnu.builder.release.1176677325" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="OMNeT++ Make Builder (opp_makemake)" superClass="org.omnetpp.cdt.gnu.builder.release"/>
+ 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1643927787" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+ 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1039888888" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
+-								<option id="gnu.cpp.compiler.option.preprocessor.def.655304152" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols"/>
++								<option id="gnu.cpp.compiler.option.preprocessor.def.655304152" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false"/>
+ 								<option id="gnu.cpp.compiler.option.include.paths.1086707691" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+ 									<listOptionValue builtIn="false" value="../../src"/>
+ 								</option>
+ 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.958073850" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+ 							</tool>
+ 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.419916163" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+-								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1241715501" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols"/>
++								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1241715501" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false"/>
+ 								<option id="gnu.c.compiler.option.include.paths.951413942" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+ 									<listOptionValue builtIn="false" value="../../src"/>
+ 								</option>
+@@ -112,8 +128,24 @@
+ 							</tool>
+ 						</toolChain>
+ 					</folderInfo>
++					<folderInfo id="org.omnetpp.cdt.gnu.config.release.1746235823.1395338960" name="/" resourcePath="src">
++						<toolChain id="org.omnetpp.cdt.gnu.toolchain.release.1525939653" name="GCC for OMNeT++" superClass="org.omnetpp.cdt.gnu.toolchain.release" unusedChildren="">
++							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1045217213" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1643927787"/>
++							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1781118688" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.1039888888">
++								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1248349667" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
++							</tool>
++							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.643450363" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.419916163">
++								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.233924779" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
++							</tool>
++							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.141502990" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1190158571"/>
++							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.164624413" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.893445214"/>
++							<tool id="cdt.managedbuild.tool.gnu.assembler.base.1392277200" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.960891752">
++								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.132979021" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
++							</tool>
++						</toolChain>
++					</folderInfo>
+ 					<sourceEntries>
+-						<entry excluding="inet/transportlayer/tcp_lwip|inet/applications/voipstream|inet/linklayer/ext|inet/transportlayer/tcp_nsc|inet/routing/extras|transport/tcp_nsc|transport/tcp_lwip" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
++						<entry excluding="inet/linklayer/csmaca|inet/linklayer/csma|inet/linklayer/lmac|inet/linklayer/bmac|inet/node/packetdrill|inet/applications/packetdrill|inet/linklayer/tun|inet/applications/tunapp|inet/node/internetcloud|inet/networklayer/internetcloud|inet/networklayer/diffserv|inet/applications/voip|inet/visualizer/transportlayer|inet/visualizer/statistic|inet/visualizer/scene|inet/visualizer/physicallayer|inet/visualizer/networknode|inet/visualizer/networklayer|inet/visualizer/mobility|inet/visualizer/linklayer|inet/visualizer/integrated|inet/visualizer/environment|inet/visualizer/base|inet/physicallayer/idealradio|inet/linklayer/ideal|inet/physicallayer/apskradio|inet/physicallayer/ieee802154|inet/linklayer/ieee802154|inet/node/wireless|inet/common/serializer/headerserializers/ieee80211|inet/physicallayer/ieee80211|inet/linklayer/ieee80211|inet/physicallayer/propagation|inet/physicallayer/pathloss|inet/physicallayer/obstacleloss|inet/physicallayer/neighborcache|inet/physicallayer/modulation|inet/physicallayer/errormodel|inet/physicallayer/energyconsumer|inet/physicallayer/communicationcache|inet/physicallayer/common|inet/physicallayer/base|inet/physicallayer/backgroundnoise|inet/physicallayer/antenna|inet/physicallayer/analogmodel|inet/power/storage|inet/power/generator|inet/power/consumer|inet/power/base|inet/environment/objectcache|inet/environment/ground|inet/environment/common|inet/mobility/static|inet/mobility/single|inet/mobility/group|inet/mobility/base|inet/node/rip|inet/routing/rip|inet/node/gpsr|inet/routing/gpsr|inet/node/aodv|inet/routing/aodv|inet/node/dymo|inet/routing/dymo|inet/routing/pim|inet/node/bgp|inet/routing/bgpv4|inet/node/ospfv2|inet/routing/ospfv2|inet/applications/dhcp|inet/node/rtp|inet/transportlayer/rtp|inet/applications/rtpapp|inet/networklayer/probabilistic|inet/networklayer/flood|inet/networklayer/wiseroute|inet/networklayer/arp/generic|inet/networklayer/configurator/generic|inet/networklayer/generic|inet/node/xmipv6|inet/networklayer/xmipv6|inet/transportlayer/tcp_lwip|inet/applications/voipstream|inet/linklayer/ext|inet/transportlayer/tcp_nsc|inet/routing/extras|transport/tcp_nsc|transport/tcp_lwip" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+ 					</sourceEntries>
+ 				</configuration>
+ 			</storageModule>
+diff --git a/.oppbuildspec b/.oppbuildspec
+index 88f99aa11..d0df1387c 100644
+--- a/.oppbuildspec
++++ b/.oppbuildspec
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ <buildspec version="4.0">
+     <dir path="." type="custom"/>
+-    <dir makemake-options="--deep --make-so -o INET -O out --meta:export-include-path --meta:export-library --meta:use-exported-libs --meta:feature-cflags --meta:feature-ldflags" path="src" type="makemake"/>
++    <dir makemake-options="--make-so --deep -o INET -O out --meta:export-include-path --meta:export-library --meta:use-exported-libs --meta:feature-cflags --meta:feature-ldflags" path="src" type="makemake"/>
+ </buildspec>
+diff --git a/src/inet/networklayer/configurator/base/NetworkConfiguratorBase.cc b/src/inet/networklayer/configurator/base/NetworkConfiguratorBase.cc
+index 359ef2e44..6ff35cc73 100644
+--- a/src/inet/networklayer/configurator/base/NetworkConfiguratorBase.cc
++++ b/src/inet/networklayer/configurator/base/NetworkConfiguratorBase.cc
+@@ -82,6 +82,15 @@ void NetworkConfiguratorBase::extractTopology(Topology& topology)
+         IInterfaceTable *interfaceTable = node->interfaceTable;
+         if (interfaceTable) {
+             for (int j = 0; j < interfaceTable->getNumInterfaces(); j++) {
++
++                if (strcmp(node->module->getNedTypeName(),
++                        "openflow.openflow.switch.Open_Flow_Switch") == 0
++                        && interfaceTable->getInterface(j)
++                                != interfaceTable->getInterfaceByName("eth0")) {
++                    continue;
++                }
++
++
+                 InterfaceEntry *interfaceEntry = interfaceTable->getInterface(j);
+                 if (!interfaceEntry->isLoopback() && interfacesSeen.count(interfaceEntry) == 0) {
+                     if (isBridgeNode(node))
+@@ -169,21 +178,44 @@ void NetworkConfiguratorBase::extractWiredNeighbors(Topology& topology, Topology
+     Node *node = (Node *)linkOut->getRemoteNode();
+     int inputGateId = linkOut->getRemoteGateId();
+     IInterfaceTable *interfaceTable = node->interfaceTable;
+-    if (!isBridgeNode(node)) {
+-        InterfaceEntry *interfaceEntry = interfaceTable->getInterfaceByNodeInputGateId(inputGateId);
+-        if (!interfaceEntry) {
+-            // no such interface (node is probably down); we should probably get the information from our (future) internal database
++
++    if (strcmp(node->module->getNedTypeName(),
++            "openflow.openflow.switch.Open_Flow_Switch") == 0) {
++        InterfaceEntry *interfaceEntry =
++                interfaceTable->getInterfaceByNodeInputGateId(inputGateId);
++        if (interfaceEntry == interfaceTable->getInterfaceByName("eth0")) {
++            if (!interfaceEntry) {
++                // no such interface (node is probably down); we should probably get the information from our (future) internal database
++            } else if (interfacesSeen.count(interfaceEntry) == 0) {
++                InterfaceInfo *neighborInterfaceInfo = createInterfaceInfo(
++                        topology, node, linkInfo, interfaceEntry);
++                linkInfo->interfaceInfos.push_back(neighborInterfaceInfo);
++                interfacesSeen.insert(interfaceEntry);
++            }
++        } else {
++            if (!contains(deviceNodesVisited, node))
++                extractDeviceNeighbors(topology, node, linkInfo, interfacesSeen,
++                        deviceNodesVisited);
+         }
+-        else if (interfacesSeen.count(interfaceEntry) == 0) {
+-            InterfaceInfo *neighborInterfaceInfo = createInterfaceInfo(topology, node, linkInfo, interfaceEntry);
+-            linkInfo->interfaceInfos.push_back(neighborInterfaceInfo);
+-            interfacesSeen.insert(interfaceEntry);
++    } else {
++
++        if (!isBridgeNode(node)) {
++            InterfaceEntry *interfaceEntry =
++                    interfaceTable->getInterfaceByNodeInputGateId(inputGateId);
++            if (!interfaceEntry) {
++                // no such interface (node is probably down); we should probably get the information from our (future) internal database
++            } else if (interfacesSeen.count(interfaceEntry) == 0) {
++                InterfaceInfo *neighborInterfaceInfo = createInterfaceInfo(
++                        topology, node, linkInfo, interfaceEntry);
++                linkInfo->interfaceInfos.push_back(neighborInterfaceInfo);
++                interfacesSeen.insert(interfaceEntry);
++            }
++        } else {
++            if (!contains(deviceNodesVisited, node))
++                extractDeviceNeighbors(topology, node, linkInfo, interfacesSeen,
++                        deviceNodesVisited);
+         }
+     }
+-    else {
+-        if (!contains(deviceNodesVisited, node))
+-            extractDeviceNeighbors(topology, node, linkInfo, interfacesSeen, deviceNodesVisited);
+-    }
+ }
+ 
+ void NetworkConfiguratorBase::extractWirelessNeighbors(Topology& topology, const char *wirelessId, LinkInfo *linkInfo, std::set<InterfaceEntry *>& interfacesSeen, std::vector<Node *>& deviceNodesVisited)
+@@ -220,6 +252,14 @@ void NetworkConfiguratorBase::extractDeviceNeighbors(Topology& topology, Node *n
+         // switch and access point
+         for (int i = 0; i < interfaceTable->getNumInterfaces(); i++) {
+             InterfaceEntry *interfaceEntry = interfaceTable->getInterface(i);
++
++            if (strcmp(node->getModule()->getNedTypeName(),
++                    "openflow.openflow.switch.Open_Flow_Switch") == 0
++                    && interfaceEntry
++                            == interfaceTable->getInterfaceByName("eth0")) {
++                continue;
++            }
++
+             if (!interfaceEntry->isLoopback() && interfacesSeen.count(interfaceEntry) == 0) {
+                 if (isWirelessInterface(interfaceEntry))
+                     extractWirelessNeighbors(topology, getWirelessId(interfaceEntry), linkInfo, interfacesSeen, deviceNodesVisited);
+diff --git a/src/inet/networklayer/configurator/ipv4/IPv4NetworkConfigurator.cc b/src/inet/networklayer/configurator/ipv4/IPv4NetworkConfigurator.cc
+index 4333f3b17..958b7174e 100644
+--- a/src/inet/networklayer/configurator/ipv4/IPv4NetworkConfigurator.cc
++++ b/src/inet/networklayer/configurator/ipv4/IPv4NetworkConfigurator.cc
+@@ -1331,6 +1331,9 @@ void IPv4NetworkConfigurator::addStaticRoutes(Topology& topology, cXMLElement *a
+                     continue;
+                 if (isBridgeNode(destinationNode))
+                     continue;
++                if (strcmp(destinationNode->module->getNedTypeName(),
++                        "openflow.openflow.switch.Open_Flow_Switch") == 0)
++                    continue;
+ 
+                 // determine next hop interface
+                 // find next hop interface (the last IP interface on the path that is not in the source node)
+@@ -1339,7 +1342,7 @@ void IPv4NetworkConfigurator::addStaticRoutes(Topology& topology, cXMLElement *a
+                 InterfaceInfo *nextHopInterfaceInfo = nullptr;
+                 while (node != sourceNode) {
+                     link = (Link *)node->getPath(0);
+-                    if (node != sourceNode && !isBridgeNode(node) && link->sourceInterfaceInfo)
++                    if (node != sourceNode && !isBridgeNode(node) && link->sourceInterfaceInfo && strcmp(node->getModule()->getNedTypeName(),"openflow.openflow.switch.Open_Flow_Switch") != 0)
+                         nextHopInterfaceInfo = static_cast<InterfaceInfo *>(link->sourceInterfaceInfo);
+                     node = (Node *)node->getPath(0)->getRemoteNode();
+                 }
+diff --git a/src/inet/networklayer/configurator/ipv4/IPv4NodeConfigurator.cc b/src/inet/networklayer/configurator/ipv4/IPv4NodeConfigurator.cc
+index 2e4f2c9dc..742fe513a 100644
+--- a/src/inet/networklayer/configurator/ipv4/IPv4NodeConfigurator.cc
++++ b/src/inet/networklayer/configurator/ipv4/IPv4NodeConfigurator.cc
+@@ -89,8 +89,13 @@ bool IPv4NodeConfigurator::handleOperationStage(LifecycleOperation *operation, i
+ 
+ void IPv4NodeConfigurator::prepareNode()
+ {
+-    for (int i = 0; i < interfaceTable->getNumInterfaces(); i++)
+-        prepareInterface(interfaceTable->getInterface(i));
++    if ((strcmp(getParentModule()->getParentModule()->getNedTypeName(),
++            "openflow.openflow.switch.Open_Flow_Switch") == 0)) {
++        prepareInterface(interfaceTable->getInterfaceByName("eth0"));
++    } else {
++        for (int i = 0; i < interfaceTable->getNumInterfaces(); i++)
++            prepareInterface(interfaceTable->getInterface(i));
++    }
+ }
+ 
+ void IPv4NodeConfigurator::prepareInterface(InterfaceEntry *interfaceEntry)
+@@ -118,8 +123,14 @@ void IPv4NodeConfigurator::prepareInterface(InterfaceEntry *interfaceEntry)
+ void IPv4NodeConfigurator::configureNode()
+ {
+     ASSERT(networkConfigurator);
+-    for (int i = 0; i < interfaceTable->getNumInterfaces(); i++)
+-        networkConfigurator->configureInterface(interfaceTable->getInterface(i));
++    if ((strcmp(getParentModule()->getParentModule()->getNedTypeName(),
++            "openflow.openflow.switch.Open_Flow_Switch") == 0)) {
++        networkConfigurator->configureInterface(
++                interfaceTable->getInterfaceByName("eth0"));
++    } else {
++        for (int i = 0; i < interfaceTable->getNumInterfaces(); i++)
++            networkConfigurator->configureInterface(interfaceTable->getInterface(i));
++    }
+     if (par("configureRoutingTable").boolValue())
+         networkConfigurator->configureRoutingTable(routingTable);
+ }
+diff --git a/src/inet/networklayer/ipv4/IPv4RoutingTable.cc b/src/inet/networklayer/ipv4/IPv4RoutingTable.cc
+index 70e8001de..cb8bfab46 100644
+--- a/src/inet/networklayer/ipv4/IPv4RoutingTable.cc
++++ b/src/inet/networklayer/ipv4/IPv4RoutingTable.cc
+@@ -350,8 +350,11 @@ bool IPv4RoutingTable::isLocalAddress(const IPv4Address& dest) const
+     if (localAddresses.empty()) {
+         // collect interface addresses if not yet done
+         for (int i = 0; i < ift->getNumInterfaces(); i++) {
+-            IPv4Address interfaceAddr = ift->getInterface(i)->ipv4Data()->getIPAddress();
+-            localAddresses.insert(interfaceAddr);
++            //IPv4Address interfaceAddr = ift->getInterface(i)->ipv4Data()->getIPAddress();
++            if (ift->getInterface(i)->ipv4Data()){// check if ipv4 is set
++                IPv4Address interfaceAddr = ift->getInterface(i)->ipv4Data()->getIPAddress();
++                localAddresses.insert(interfaceAddr);
++            }
+         }
+     }
+ 
+@@ -370,10 +373,12 @@ bool IPv4RoutingTable::isLocalBroadcastAddress(const IPv4Address& dest) const
+             InterfaceEntry *ie = ift->getInterface(i);
+             if (!ie->isBroadcast())
+                 continue;
+-            IPv4Address interfaceAddr = ie->ipv4Data()->getIPAddress();
+-            IPv4Address broadcastAddr = interfaceAddr.makeBroadcastAddress(ie->ipv4Data()->getNetmask());
+-            if (!broadcastAddr.isUnspecified()) {
+-                localBroadcastAddresses.insert(broadcastAddr);
++            if (ift->getInterface(i)->ipv4Data()){// check if ipv4 is set
++                IPv4Address interfaceAddr = ie->ipv4Data()->getIPAddress();
++                IPv4Address broadcastAddr = interfaceAddr.makeBroadcastAddress(ie->ipv4Data()->getNetmask());
++                if (!broadcastAddr.isUnspecified()) {
++                    localBroadcastAddresses.insert(broadcastAddr);
++                }
+             }
+         }
+     }
+diff --git a/src/inet/transportlayer/tcp/TCP.cc b/src/inet/transportlayer/tcp/TCP.cc
+index 4ce9ea05b..2338eaa95 100644
+--- a/src/inet/transportlayer/tcp/TCP.cc
++++ b/src/inet/transportlayer/tcp/TCP.cc
+@@ -398,12 +398,15 @@ void TCP::addSockPair(TCPConnection *conn, L3Address localAddr, L3Address remote
+     auto it = tcpConnMap.find(key);
+     if (it != tcpConnMap.end()) {
+         // throw "address already in use" error
+-        if (remoteAddr.isUnspecified() && remotePort == -1)
+-            throw cRuntimeError("Address already in use: there is already a connection listening on %s:%d",
+-                    localAddr.str().c_str(), localPort);
+-        else
+-            throw cRuntimeError("Address already in use: there is already a connection %s:%d to %s:%d",
+-                    localAddr.str().c_str(), localPort, remoteAddr.str().c_str(), remotePort);
++        if (remoteAddr.isUnspecified() && remotePort == -1) {
++            removeConnection(it->second);
++            //error("Address already in use: there is already a connection listening on %s:%d",
++            //      localAddr.str().c_str(), localPort);
++        } else
++            error(
++                    "Address already in use: there is already a connection %s:%d to %s:%d",
++                    localAddr.str().c_str(), localPort,
++                    remoteAddr.str().c_str(), remotePort);
+     }
+ 
+     // then insert it into tcpConnMap
+-- 
+2.17.1
+

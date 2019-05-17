@@ -1,20 +1,21 @@
 
-#ifndef HFLLDPAGENT_H_
-#define HFLLDPAGENT_H_
+#ifndef OPENFLOW_HYPERFLOW_HFLLDPAGENT_H_
+#define OPENFLOW_HYPERFLOW_HFLLDPAGENT_H_
 
 #include <omnetpp.h>
 #include "openflow/controllerApps/LLDPAgent.h"
 #include "openflow/controllerApps/AbstractControllerApp.h"
-#include "openflow/messages/LLDP_m.h"
+#include "openflow/messages/lldp/LLDP_m.h"
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 #include "openflow/openflow/controller/Switch_Info.h"
 #include "openflow/controllerApps/LLDPMibGraph.h"
-#include "openflow/messages/OFP_Features_Reply_m.h"
-#include "openflow/messages/OFP_Packet_In_m.h"
+#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
 #include "openflow/hyperflow/HyperFlowAgent.h"
 #include "openflow/hyperflow/HF_ReFire_Wrapper.h"
 #include "openflow/utility/LLDP_Wrapper.h"
 
+namespace ofp{
 
 class HF_LLDPAgent:public LLDPAgent {
 
@@ -32,5 +33,7 @@ protected:
     simsignal_t HyperFlowReFireSignalId;
 };
 
+} /*end namespace ofp*/
 
-#endif
+
+#endif /** OPENFLOW_HYPERFLOW_HFLLDPAGENT_H_ **/

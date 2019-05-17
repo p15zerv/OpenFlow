@@ -1,11 +1,15 @@
 #include "openflow/kandoo/KN_LLDPAgent.h"
 #include <algorithm>
 
+using namespace inet;
+
+namespace ofp{
 
 #define MSGKIND_TRIGGERLLDP 101
 #define MSGKIND_LLDPAGENTBOOTED 201
 
 Define_Module(KN_LLDPAgent);
+
 
 KN_LLDPAgent::KN_LLDPAgent(){
 
@@ -146,4 +150,5 @@ void KN_LLDPAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, 
 
 }
 
+} /*end namespace ofp*/
 

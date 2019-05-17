@@ -1,4 +1,6 @@
 
+#ifndef LACALITYPINGAPPRANDOM_H_
+#define LACALITYPINGAPPRANDOM_H_
 
 #include <iostream>
 
@@ -10,7 +12,8 @@
 #include "inet/networklayer/contract/ipv6/IPv6ControlInfo.h"
 
 using namespace std;
-using std::cout;
+
+namespace ofp{
 
 Define_Module(LocalityPingAppRandom);
 
@@ -57,52 +60,72 @@ void LocalityPingAppRandom::initialize(int stage){
 void LocalityPingAppRandom::handleMessage(cMessage *msg){
 
     if (!isNodeUp()){
-            if (msg->isSelfMessage())
-                throw cRuntimeError("Application is not running");
-            delete msg;
-            return;
-        }
-        if (msg == timer){
-            //determine local oder global
-            if(dblrand() <= localityRelation){
-                //determine random local target
-                std::vector<std::string> tempVec = groupToNodes[localId];
-                connectAddress = (tempVec[intrand(groupToNodes[localId].size())]);
+        if (msg->isSelfMessage())
+            throw cRuntimeError("Application is not running");
+        delete msg;
+        return;
+    }
+    if (msg == timer){
+        //determine local oder global
+        std::string tempTarget = "";
+        if(dblrand() <= localityRelation){
+            //local so set target
+            tempTarget = localId;
 
-            } else {
-                //determine random global target
-
-                //determine group
+        } else {
+            //global so set target
+            //determine group
+            if(groupToNodes.size() > 0) {
                 int tempRand = intrand(groupToNodes.size());
-                while(tempRand == atoi(localId.c_str())){
+                while(tempRand == atoi(localId.c_str()) && (!localId.empty())){
                     tempRand = intrand(groupToNodes.size());
                 }
-                //determine host
-                std::vector<std::string> tempVec = groupToNodes[std::to_string(tempRand)];
-                connectAddress = (tempVec[intrand(groupToNodes[std::to_string(tempRand)].size())]);
+                tempTarget = std::to_string(tempRand);
             }
+        }
 
+        //determine target
+        bool targetSet = false;
+        if(!tempTarget.empty()){
+            std::vector<std::string> tempVec = groupToNodes[tempTarget];
+            if( 0 < tempVec.size()){
+                std::string tempAddress = tempVec[intrand(tempVec.size())];
+                if(!tempAddress.empty()){
+                    connectAddress = (tempAddress);
+                    targetSet = true;
+                }
+            }
+        }
 
+        if(targetSet){
             destAddr = L3AddressResolver().resolve(connectAddress.c_str());
             ASSERT(!destAddr.isUnspecified());
             srcAddr = L3AddressResolver().resolve(par("srcAddr"));
             EV << "Starting up: dest=" << destAddr << "  src=" << srcAddr << "\n";
 
             sendPing();
-            if (isEnabled())
-                scheduleNextPingRequest(simTime(), true);
         }
-        else
-            processPingResponse(check_and_cast<PingPayload *>(msg));
 
-        if (hasGUI()){
-            char buf[40];
-            sprintf(buf, "sent: %ld pks\nrcvd: %ld pks", sentCount, numPongs);
-            getDisplayString().setTagArg("t", 0, buf);
-        }
+        if (isEnabled())
+            scheduleNextPingRequest(simTime(), true);
+
+    }
+    else {
+        processPingResponse(check_and_cast<PingPayload *>(msg));
+    }
+
+    if (hasGUI()){
+        char buf[40];
+        sprintf(buf, "sent: %ld pks\nrcvd: %ld pks", sentCount, numPongs);
+        getDisplayString().setTagArg("t", 0, buf);
+    }
 }
 
 
 bool LocalityPingAppRandom::isEnabled(){
     return (count == -1 || sentCount < count);
 }
+
+} /*end namespace ofp*/
+
+#endif /* LACALITYPINGAPPRANDOM_H_ */

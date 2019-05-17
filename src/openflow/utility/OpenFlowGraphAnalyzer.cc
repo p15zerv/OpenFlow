@@ -4,6 +4,13 @@
 #include <algorithm>
 #include <vector>
 
+
+using namespace inet;
+using namespace std;
+
+
+namespace ofp{
+
 Define_Module(OpenFlowGraphAnalyzer);
 
 struct compNodeInt {
@@ -40,7 +47,7 @@ void OpenFlowGraphAnalyzer::initialize(int stage) {
        }
 
        maxPathLength = 0;
-       minPathLength = std::numeric_limits<int>::max();
+       minPathLength = std::numeric_limits<uint32_t>::max();
        numClientNodes = 0;
        numSwitchNodes = 0;
        avgPathLength = .0;
@@ -49,7 +56,7 @@ void OpenFlowGraphAnalyzer::initialize(int stage) {
        std::list<cTopology::Node * >::iterator iterInner;
        int pathCounter = 0;
        for(iterOuter = computedPaths.begin(); iterOuter != computedPaths.end();iterOuter++ ){
-           if(iterOuter->size()-1 < minPathLength){
+           if(((iterOuter->size()-1) > 0) && ((iterOuter->size()-1) < minPathLength)){
                minPathLength = iterOuter->size()-1;
            }
            if(iterOuter->size()-1 > maxPathLength){
@@ -101,11 +108,15 @@ void OpenFlowGraphAnalyzer::initialize(int stage) {
        }
 
 
-       avgPathLength = avgPathLength /computedPaths.size();
+       if(computedPaths.size() > 0) {
+           avgPathLength = avgPathLength /computedPaths.size();
+       }
        numClientNodes = clMap.size();
        numSwitchNodes = swMap.size();
 
-       avgNumSwitchLinks = numLinks/numSwitchNodes;
+       if(numSwitchNodes > 0){
+           avgNumSwitchLinks = numLinks/numSwitchNodes;
+       }
 
        EV << "Min Path Length: " << minPathLength << endl;
        EV << "Max Path Length: " << maxPathLength << endl;
@@ -212,3 +223,5 @@ void OpenFlowGraphAnalyzer::finish(){
 void OpenFlowGraphAnalyzer::handleMessage(cMessage *msg) {
     error("this module doesn't handle messages, it runs only in initialize()");
 }
+
+} /*end namespace ofp*/

@@ -7,9 +7,10 @@ import openflow.controllerApps.AbstractControllerApp;
 simple KN_LLDPForwarding like AbstractControllerApp
 {
     parameters:
+        @class(ofp::KN_LLDPForwarding);
         @signal[KandooEvent];
-        @signal[pingPacketHash](type="long");
-        @statistic[pingPacketHash](title="PingPacketHash"; record=vector?,stats?; interpolationmode=none);
+        @signal[cpPingPacketHash](type="unsigned long");
+        @statistic[cpPingPacketHash](title="CpPingPacketHash"; record=vector?,stats; interpolationmode=none);
         @display("i=block/app");
         int flowModHardTimeOut = default(0);
         int flowModIdleTimeOut = default(1);

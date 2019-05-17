@@ -1,14 +1,12 @@
+#include <openflow/openflow/protocol/OpenFlow.h>
 #include "openflow/openflow/switch/OF_Switch.h"
-#include "openflow/openflow/protocol/openflow.h"
+#include "openflow/messages/openflowprotocol/OFP_Message.h"
+#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
+#include "openflow/messages/openflowprotocol/OFP_Hello.h"
 
-#include "openflow/messages/Open_Flow_Message_m.h"
-#include "openflow/messages/OFP_Initialize_Handshake_m.h"
-#include "openflow/messages/OFP_Features_Reply_m.h"
-#include "openflow/messages/OFP_Hello_m.h"
-
-#include "openflow/messages/OFP_Packet_In_m.h"
-#include "openflow/messages/OFP_Packet_Out_m.h"
-#include "openflow/messages/OFP_Flow_Mod_m.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_Out.h"
+#include "openflow/messages/openflowprotocol/OFP_Flow_Mod.h"
 #include "inet/linklayer/ethernet/EtherMAC.h"
 
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
@@ -21,19 +19,28 @@
 #include "inet/applications/pingapp/PingPayload_m.h"
 #include "inet/networklayer/ipv4/ICMPMessage.h"
 
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
+
+using namespace std;
+using namespace inet;
+
+
+namespace ofp{
+
+Define_Module(OF_Switch);
 
 #define MSGKIND_CONNECT                     1
 #define MSGKIND_SERVICETIME                 3
 
 
-Define_Module(OF_Switch);
-
 OF_Switch::OF_Switch(){
-
 }
 
 OF_Switch::~OF_Switch(){
-
+    for(auto&& msg : msgList) {
+      delete msg;
+    }
+    msgList.clear();
 }
 
 void OF_Switch::initialize(){
@@ -74,12 +81,15 @@ void OF_Switch::initialize(){
         sprintf(portVector[i].name,"Port: %d",i);
         portVector[i].config =0;
         portVector[i].state =0;
+        //TODO fix wildcards for OFP151!
+#if OFP_VERSION_IN_USE == OFP_100
         portVector[i].curr =0;
         portVector[i].advertised =0;
         portVector[i].supported =0;
         portVector[i].peer =0;
         portVector[i].curr_speed =0;
         portVector[i].max_speed =0;
+#endif
     }
 
     //init helper classes
@@ -182,11 +192,9 @@ void OF_Switch::connect(const char *addressToConnect){
     EV << "Sending Hello to" << connectAddress <<" \n";
 
     socket.connect(L3AddressResolver().resolve(connectAddress), connectPort);
-    OFP_Hello *msg = new OFP_Hello("Hello");
-    msg->getHeader().version = OFP_VERSION;
-    msg->getHeader().type = OFPT_HELLO;
-    msg->setByteLength(8);
-    msg->setKind(TCP_C_SEND);
+
+    OFP_Hello *msg = OFMessageFactory::instance()->createHello();
+
     socket.send(msg);
 }
 
@@ -206,8 +214,8 @@ void OF_Switch::processQueuedMsg(cMessage *data_msg){
         }
     } else {
         controlPlanePacket++;
-       if (dynamic_cast<Open_Flow_Message *>(data_msg) != NULL) { //msg from controller
-            Open_Flow_Message *of_msg = (Open_Flow_Message *)data_msg;
+       if (dynamic_cast<OFP_Message *>(data_msg) != NULL) { //msg from controller
+            OFP_Message *of_msg = (OFP_Message *)data_msg;
             ofp_type type = (ofp_type)of_msg->getHeader().type;
             switch (type){
                 case OFPT_FEATURES_REQUEST:
@@ -218,6 +226,8 @@ void OF_Switch::processQueuedMsg(cMessage *data_msg){
                     break;
                 case OFPT_PACKET_OUT:
                     handlePacketOutMessage(of_msg);
+                    break;
+                default:
                     break;
                 }
         }
@@ -230,19 +240,17 @@ void OF_Switch::processFrame(EthernetIIFrame *frame){
     oxm_basic_match match = oxm_basic_match();
 
     //extract match fields
-    match.OFB_IN_PORT = frame->getArrivalGate()->getIndex();
-    match.OFB_ETH_SRC = frame->getSrc();
-    match.OFB_ETH_DST = frame->getDest();
-    match.OFB_ETH_TYPE = frame->getEtherType();
+    match.in_port = frame->getArrivalGate()->getIndex();
+    match.dl_src = frame->getSrc();
+    match.dl_dst = frame->getDest();
+    match.dl_type = frame->getEtherType();
 
     //extract ARP specific match fields if present
     if(frame->getEtherType()==ETHERTYPE_ARP){
         ARPPacket *arpPacket = check_and_cast<ARPPacket *>(frame->getEncapsulatedPacket());
-        match.OFB_ARP_OP = arpPacket->getOpcode();
-        match.OFB_ARP_SHA = arpPacket->getSrcMACAddress();
-        match.OFB_ARP_THA = arpPacket->getDestMACAddress();
-        match.OFB_ARP_SPA = arpPacket->getSrcIPAddress();
-        match.OFB_ARP_TPA = arpPacket->getDestIPAddress();
+        match.nw_proto = arpPacket->getOpcode();
+        match.nw_src = arpPacket->getSrcIPAddress();
+        match.nw_dst = arpPacket->getDestIPAddress();
     }
 
     unsigned long hash =0;
@@ -265,63 +273,53 @@ void OF_Switch::processFrame(EthernetIIFrame *frame){
        flowTableHit++;
        EV << "Found entry in flow table." << '\n';
        ofp_action_output action_output = lookup->getInstructions();
-       uint32_t outport = action_output.port;
-       if(outport == OFPP_CONTROLLER){
-           //send it to the controller
-           OFP_Packet_In *packetIn = new OFP_Packet_In("packetIn");
-           packetIn->getHeader().version = OFP_VERSION;
-           packetIn->getHeader().type = OFPT_PACKET_IN;
-           packetIn->setReason(OFPR_ACTION);
-           packetIn->setByteLength(32);
-           packetIn->encapsulate(frame);
-           packetIn->setBuffer_id(OFP_NO_BUFFER);
-           socket.send(packetIn);
-           if(hash !=0){
-               emit(cpPingPacketHash,hash);
-           }
-       } else {
-           if(hash !=0){
-               emit(dpPingPacketHash,hash);
-           }
+        uint32_t outport = action_output.port;
+        if (outport == OFPP_CONTROLLER) {
+            //send it to the controller
+#if OFP_VERSION_IN_USE == OFP_100
+            OFP_Packet_In *packetIn =
+                    OFMessageFactory::instance()->createPacketIn(OFPR_ACTION,
+                            frame);
+#elif OFP_VERSION_IN_USE == OFP_151
+            OFP_Packet_In *packetIn = OFMessageFactory::instance()->createPacketIn(OFPR_ACTION_SET, frame);
+#endif
+
+            socket.send(packetIn);
+        } else {
            //send it out the dataplane on the specific port
-           send(frame, "dataPlaneOut", outport);
+           send(frame->dup(), "dataPlaneOut", outport);
        }
    } else {
-       if(hash !=0){
-           emit(cpPingPacketHash,hash);
-       }
        // lookup failed
        flowTableMiss++;
        EV << "No Entry Found contacting controller" << '\n';
        handleMissMatchedPacket(frame);
    }
+
+   delete frame;
+   if(hash !=0){
+       emit(cpPingPacketHash,hash);
+   }
 }
 
-void OF_Switch::handleFeaturesRequestMessage(Open_Flow_Message *of_msg){
-    OFP_Features_Reply *featuresReply = new OFP_Features_Reply("FeaturesReply");
-    featuresReply->getHeader().version = OFP_VERSION;
-    featuresReply->getHeader().type = OFPT_FEATURES_REPLY;
+void OF_Switch::handleFeaturesRequestMessage(OFP_Message *of_msg){
 
+    //prepare data
     IInterfaceTable *inet_ift = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
 
     MACAddress mac = inet_ift->getInterface(0)->getMacAddress();
 
-
     //output address
-    EV <<"SwitchID:" << mac.str().c_str() << " SwitchPath:" << this->getFullPath() << '\n';
+    EV <<"SwitchID:" << mac.str() << " SwitchPath:" << this->getFullPath() << '\n';
 
+    //get message from factory
+    OFP_Features_Reply *featuresReply = OFMessageFactory::instance()->createFeaturesReply(mac.str(), buffer.getCapacity(), 1, 0, gateSize("dataPlaneOut"));
 
-    featuresReply->setDatapath_id(mac.str().c_str());
-    featuresReply->setN_buffers(buffer.getCapacity());
-    featuresReply->setN_tables(1);
-    featuresReply->setPortsArraySize(gateSize("dataPlaneOut"));
-
-    featuresReply->setByteLength(32);
-    featuresReply->setKind(TCP_C_SEND);
+    //send message
     socket.send(featuresReply);
 }
 
-void OF_Switch::handleFlowModMessage(Open_Flow_Message *of_msg){
+void OF_Switch::handleFlowModMessage(OFP_Message *of_msg){
     EV << "OFA_switch::handleFlowModMessage" << '\n';
     OFP_Flow_Mod *flowModMsg = (OFP_Flow_Mod *) of_msg;
 
@@ -331,44 +329,35 @@ void OF_Switch::handleFlowModMessage(Open_Flow_Message *of_msg){
 
 
 
-void OF_Switch::handleMissMatchedPacket(EthernetIIFrame *frame){
-    OFP_Packet_In *packetIn = new OFP_Packet_In("packetIn");
-    packetIn->getHeader().version = OFP_VERSION;
-    packetIn->getHeader().type = OFPT_PACKET_IN;
-    packetIn->setReason(OFPR_NO_MATCH);
+void OF_Switch::handleMissMatchedPacket(EthernetIIFrame *frame) {
 
-    packetIn->setByteLength(32);
+    OFP_Packet_In *packetIn;
+    if (sendCompletePacket || buffer.isfull()) {
 
-    if (sendCompletePacket || buffer.isfull()){
-        // send full packet with packet-in message
-        packetIn->encapsulate(frame);
-        packetIn->setBuffer_id(OFP_NO_BUFFER);
+#if OFP_VERSION_IN_USE == OFP_100
+        packetIn = OFMessageFactory::instance()->createPacketIn(
+                OFPR_NO_MATCH, frame);
+#elif OFP_VERSION_IN_USE == OFP_151
+        packetIn = OFMessageFactory::instance()->createPacketIn(
+                OFPR_TABLE_MISS, frame);
+#endif
+    } else {
 
-    } else{
-        // store packet in buffer and only send header fields
-        oxm_basic_match match = oxm_basic_match();
-        match.OFB_IN_PORT = frame->getArrivalGate()->getIndex();
+#if OFP_VERSION_IN_USE == OFP_100
+        packetIn = OFMessageFactory::instance()->createPacketIn(
+                OFPR_NO_MATCH, frame, buffer.storeMessage(frame->dup()), false);
+#elif OFP_VERSION_IN_USE == OFP_151
+        packetIn = OFMessageFactory::instance()->createPacketIn(
+                OFPR_TABLE_MISS, frame, buffer.storeMessage(frame->dup()), false);
+#endif
 
-        match.OFB_ETH_SRC = frame->getSrc();
-        match.OFB_ETH_DST = frame->getDest();
-        match.OFB_ETH_TYPE = frame->getEtherType();
-        //extract ARP specific match fields if present
-        if(frame->getEtherType()==ETHERTYPE_ARP){
-            ARPPacket *arpPacket = check_and_cast<ARPPacket *>(frame->getEncapsulatedPacket());
-            match.OFB_ARP_OP = arpPacket->getOpcode();
-            match.OFB_ARP_SHA = arpPacket->getSrcMACAddress();
-            match.OFB_ARP_THA = arpPacket->getDestMACAddress();
-            match.OFB_ARP_SPA = arpPacket->getSrcIPAddress();
-            match.OFB_ARP_TPA = arpPacket->getDestIPAddress();
-        }
-        packetIn->setMatch(match);
-        packetIn->setBuffer_id(buffer.storeMessage(frame));
     }
+
     socket.send(packetIn);
 }
 
 
-void OF_Switch::handlePacketOutMessage(Open_Flow_Message *of_msg){
+void OF_Switch::handlePacketOutMessage(OFP_Message *of_msg){
     //cast message
     OFP_Packet_Out *packet_out_msg = (OFP_Packet_Out *) of_msg;
 
@@ -383,19 +372,17 @@ void OF_Switch::handlePacketOutMessage(Open_Flow_Message *of_msg){
         frame = buffer.returnMessage(bufferId);
     } else {
         frame = dynamic_cast<EthernetIIFrame *>(packet_out_msg->getEncapsulatedPacket());
-        frame = frame->dup();
     }
 
     //execute
     for (unsigned int i = 0; i < actions_size; ++i){
-        executePacketOutAction(&(packet_out_msg->getActions(i)), frame, inPort);
+        executePacketOutAction(&(packet_out_msg->getActions(i)), frame->dup(), inPort);
     }
 }
 
 
 // packet encapsulated and not stored in buffer
-void OF_Switch::executePacketOutAction(ofp_action_header *action, EthernetIIFrame *frame, uint32_t inport){
-    ofp_action_output *action_output = (ofp_action_output *) action;
+void OF_Switch::executePacketOutAction(ofp_action_output *action_output, EthernetIIFrame *frame, uint32_t inport){
     uint32_t outport = action_output->port;
     take(frame);
     if(outport == OFPP_ANY){
@@ -413,6 +400,7 @@ void OF_Switch::executePacketOutAction(ofp_action_header *action, EthernetIIFram
         EV << "Send Packet\n" << '\n';
         send(frame->dup(), "dataPlaneOut", outport);
     }
+    drop(frame);
     delete frame;
 }
 
@@ -460,4 +448,6 @@ void OF_Switch::finish(){
     recordScalar("flowTableHit", flowTableHit);
     recordScalar("flowTableMiss", flowTableMiss);
 }
+
+} /*end namespace ofp*/
 

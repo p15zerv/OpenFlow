@@ -18,6 +18,7 @@ package openflow.controllerApps;
 simple LLDPForwarding like AbstractControllerApp
 {
     parameters:
+        @class(ofp::LLDPForwarding);
         @display("i=block/app");
         int flowModHardTimeOut = default(0);
         int flowModIdleTimeOut = default(1);

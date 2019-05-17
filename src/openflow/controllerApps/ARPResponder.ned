@@ -18,6 +18,7 @@ package openflow.controllerApps;
 simple ARPResponder like AbstractControllerApp
 {
     parameters:
+        @class(ofp::ARPResponder);
         @display("i=block/app");
         
         

@@ -7,7 +7,7 @@ package openflow.utility;
 simple OpenFlowGraphAnalyzer
 {
     parameters:
-
+        @class(ofp::OpenFlowGraphAnalyzer);
         @display("i=spanning-tree");
         string NodeType = default("openflow.openflow.switch.Open_Flow_Switch inet.node.inet.StandardHost");
 		bool considerOnlyEndToEnd = default(true);

@@ -6,7 +6,7 @@ package openflow.hyperflow;
 simple HyperFlowAgent extends openflow.controllerApps.AbstractTCPControllerApp
 {
     parameters:
-        @class(HyperFlowAgent);
+        @class(ofp::HyperFlowAgent);
         @signal[HyperFlowReFire];
         @display("i=block/app");
         int flowModHardTimeOut = default(0);

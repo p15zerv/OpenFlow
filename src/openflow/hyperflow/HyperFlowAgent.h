@@ -1,15 +1,19 @@
 
-#ifndef HYPER_FLOW_AGENT_H_
-#define HYPER_FLOW_AGENT_H_
+#ifndef OPENFLOW_HYPERFLOW_HYPER_FLOW_AGENT_H_
+#define OPENFLOW_HYPERFLOW_HYPER_FLOW_AGENT_H_
 
 #include <omnetpp.h>
 #include "openflow/controllerApps/AbstractTCPControllerApp.h"
-#include "openflow/messages/HF_SyncRequest_m.h"
-#include "openflow/messages/HF_ReportIn_m.h"
-#include "openflow/messages/HF_SyncReply_m.h"
+#include "openflow/messages/hyperflow/HF_SyncRequest_m.h"
+#include "openflow/messages/hyperflow/HF_ReportIn_m.h"
+#include "openflow/messages/hyperflow/HF_SyncReply_m.h"
 #include "openflow/hyperflow/HyperFlowStructs.h"
-#include "openflow/messages/HF_ChangeNotification_m.h"
+#include "openflow/messages/hyperflow/HF_ChangeNotification_m.h"
 #include "openflow/hyperflow/HF_ReFire_Wrapper.h"
+
+
+namespace ofp{
+
 
 class HyperFlowAgent:public AbstractTCPControllerApp {
 
@@ -51,5 +55,6 @@ protected:
 
 };
 
+} /*end namespace ofp*/
 
-#endif
+#endif /** OPENFLOW_HYPERFLOW_HYPER_FLOW_AGENT_H_ **/

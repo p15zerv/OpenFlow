@@ -1,7 +1,6 @@
 
 
 
-
 #include "openflow/hostApps/PingAppRandom.h"
 
 #include "inet/networklayer/common/L3AddressResolver.h"
@@ -15,6 +14,8 @@
 #include <algorithm>
 
 using namespace inet;
+
+namespace ofp{
 
 Define_Module(PingAppRandom);
 
@@ -81,3 +82,5 @@ void PingAppRandom::handleMessage(cMessage *msg){
 bool PingAppRandom::isEnabled(){
     return (count == -1 || sentCount < count);
 }
+
+} /*end namespace ofp*/

@@ -1,4 +1,13 @@
 #include "openflow/controllerApps/AbstractControllerApp.h"
+//#include "openflow/messages/openflowprotocol/OFP_Message.h"
+#include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
+
+using namespace inet;
+
+
+
+namespace ofp{
 
 Define_Module(AbstractControllerApp);
 
@@ -20,12 +29,14 @@ void AbstractControllerApp::initialize(){
     PacketFeatureRequestSignalId = registerSignal("PacketFeatureRequest");
     PacketFeatureReplySignalId = registerSignal("PacketFeatureReply");
     BootedSignalId= registerSignal("Booted");
+    ExperimenterSignalID = registerSignal("Experimenter");
 
     getParentModule()->subscribe("PacketIn",this);
     getParentModule()->subscribe("PacketOut",this);
     getParentModule()->subscribe("PacketFeatureRequest",this);
     getParentModule()->subscribe("PacketFeatureReply",this);
     getParentModule()->subscribe("Booted",this);
+    getParentModule()->subscribe("Experimenter",this);
 
     packetsFlooded=0;
     packetsDropped=0;
@@ -75,11 +86,14 @@ void AbstractControllerApp::sendPacket(OFP_Packet_In *packet_in_msg, uint32_t ou
     socket->send(createPacketOutFromPacketIn(packet_in_msg,outport));
 }
 
-void AbstractControllerApp::sendFlowModMessage(ofp_flow_mod_command mod_com, const oxm_basic_match &match, uint32_t outport, TCPSocket * socket, int idleTimeOut =1 , int hardTimeOut=0){
+void AbstractControllerApp::sendFlowModMessage(ofp_flow_mod_command mod_com, const oxm_basic_match &match, int outport, TCPSocket * socket, int idleTimeOut =1 , int hardTimeOut=0){
     EV << "sendFlowModMessage" << '\n';
     numFlowMod++;
 
-    socket->send(createFlowMod(mod_com,match,outport,idleTimeOut,hardTimeOut));
+    uint32_t out = (uint32_t)outport;
+    OFP_Flow_Mod* flow_mod_msg = OFMessageFactory::instance()->createFlowModMessage(mod_com, match, 0, &out, 1, idleTimeOut, hardTimeOut);
+
+    socket->send(flow_mod_msg);
 }
 
 void AbstractControllerApp::finish(){
@@ -92,47 +106,22 @@ void AbstractControllerApp::finish(){
 }
 
 
-OFP_Flow_Mod * AbstractControllerApp::createFlowMod(ofp_flow_mod_command mod_com,const oxm_basic_match  &match, uint32_t outport, int idleTimeOut =1 , int hardTimeOut=0){
-    OFP_Flow_Mod *flow_mod_msg = new OFP_Flow_Mod("flow_mod");
-    flow_mod_msg->getHeader().version = OFP_VERSION;
-    flow_mod_msg->getHeader().type = OFPT_FLOW_MOD;
-    flow_mod_msg->setCommand(mod_com);
-    flow_mod_msg->setMatch(match);
-    flow_mod_msg->setByteLength(56);
-    flow_mod_msg->setHard_timeout(hardTimeOut);
-    flow_mod_msg->setIdle_timeout(idleTimeOut);
-    ofp_action_output *action_output = new ofp_action_output();
-    action_output->port = outport;
-    flow_mod_msg->setActionsArraySize(1);
-    flow_mod_msg->setActions(0, *action_output);
-
-    flow_mod_msg->setKind(TCP_C_SEND);
-
-    return flow_mod_msg;
-}
-
-
 OFP_Packet_Out * AbstractControllerApp::createPacketOutFromPacketIn(OFP_Packet_In *packet_in_msg, uint32_t outport){
-    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-    packetOut->getHeader().version = OFP_VERSION;
-    packetOut->getHeader().type = OFPT_PACKET_OUT;
-    packetOut->setBuffer_id(packet_in_msg->getBuffer_id());
-    packetOut->setByteLength(24);
+
+    OFP_Packet_Out *packetOut = nullptr;
+
 
     if (packet_in_msg->getBuffer_id() == OFP_NO_BUFFER){
+
         EthernetIIFrame *frame =  dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket());
-        packetOut->encapsulate(frame->dup());
-        packetOut->setIn_port(frame->getArrivalGate()->getIndex());
+        if(frame){
+            packetOut = OFMessageFactory::instance()->createPacketOut(&outport, 1, frame->getArrivalGate()->getIndex(), packet_in_msg->getBuffer_id(), frame);
+        } else {
+            throw cRuntimeError("AbstractControllerApp::createPacketOutFromPacketIn: OFP_NO_BUFFER was set but no frame was provided in packet in");
+        }
     } else {
-        packetOut->setIn_port(packet_in_msg->getMatch().OFB_IN_PORT);
+        packetOut = OFMessageFactory::instance()->createPacketOut(&outport, 1, packet_in_msg->getMatch().in_port, packet_in_msg->getBuffer_id());
     }
-
-    ofp_action_output *action_output = new ofp_action_output();
-    action_output->port = outport;
-    packetOut->setActionsArraySize(1);
-    packetOut->setActions(0, *action_output);
-
-    packetOut->setKind(TCP_C_SEND);
 
     return packetOut;
 }
@@ -140,51 +129,39 @@ OFP_Packet_Out * AbstractControllerApp::createPacketOutFromPacketIn(OFP_Packet_I
 
 
 OFP_Packet_Out * AbstractControllerApp::createFloodPacketFromPacketIn(OFP_Packet_In *packet_in_msg){
-    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-    packetOut->getHeader().version = OFP_VERSION;
-    packetOut->getHeader().type = OFPT_PACKET_OUT;
-    packetOut->setBuffer_id(packet_in_msg->getBuffer_id());
-    packetOut->setByteLength(24);
+
+    OFP_Packet_Out *packetOut = nullptr;
+    uint32_t outport = OFPP_FLOOD;
 
     if (packet_in_msg->getBuffer_id() == OFP_NO_BUFFER){
+
         EthernetIIFrame *frame =  dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket());
-        packetOut->encapsulate(frame->dup());
-        packetOut->setIn_port(frame->getArrivalGate()->getIndex());
-    }else{
-        packetOut->setIn_port(packet_in_msg->getMatch().OFB_IN_PORT);
+        if(frame){
+            packetOut = OFMessageFactory::instance()->createPacketOut(&outport, 1, frame->getArrivalGate()->getIndex(), packet_in_msg->getBuffer_id(), frame);
+        } else {
+            throw cRuntimeError("AbstractControllerApp::createPacketOutFromPacketIn: OFP_NO_BUFFER was set but no frame was provided in packet in");
+        }
+    } else {
+        packetOut = OFMessageFactory::instance()->createPacketOut(&outport, 1, packet_in_msg->getMatch().in_port, packet_in_msg->getBuffer_id());
     }
-
-    ofp_action_output *action_output = new ofp_action_output();
-    action_output->port = OFPP_FLOOD;
-    packetOut->setActionsArraySize(1);
-    packetOut->setActions(0, *action_output);
-
-    packetOut->setKind(TCP_C_SEND);
 
     return packetOut;
 }
 
 OFP_Packet_Out * AbstractControllerApp::createDropPacketFromPacketIn(OFP_Packet_In *packet_in_msg){
-    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-    packetOut->getHeader().version = OFP_VERSION;
-    packetOut->getHeader().type = OFPT_PACKET_OUT;
-    packetOut->setBuffer_id(packet_in_msg->getBuffer_id());
-    packetOut->setByteLength(24);
+    OFP_Packet_Out *packetOut = nullptr;
 
     if (packet_in_msg->getBuffer_id() == OFP_NO_BUFFER){
+
         EthernetIIFrame *frame =  dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket());
-        packetOut->encapsulate(frame->dup());
-        packetOut->setIn_port(frame->getArrivalGate()->getIndex());
-    }else{
-        packetOut->setIn_port(packet_in_msg->getMatch().OFB_IN_PORT);
+        if(frame){
+            packetOut = OFMessageFactory::instance()->createPacketOut(nullptr, 0, frame->getArrivalGate()->getIndex(), packet_in_msg->getBuffer_id(), frame);
+        } else {
+            throw cRuntimeError("AbstractControllerApp::createPacketOutFromPacketIn: OFP_NO_BUFFER was set but no frame was provided in packet in");
+        }
+    } else {
+        packetOut = OFMessageFactory::instance()->createPacketOut(nullptr, 0, packet_in_msg->getMatch().in_port, packet_in_msg->getBuffer_id());
     }
-
-    ofp_action_output *action_output = new ofp_action_output();
-    action_output->port = OFPP_ANY;
-    packetOut->setActionsArraySize(1);
-    packetOut->setActions(0, *action_output);
-
-    packetOut->setKind(TCP_C_SEND);
 
     return packetOut;
 }
@@ -210,16 +187,19 @@ CommonHeaderFields AbstractControllerApp::extractCommonHeaderFields(OFP_Packet_I
             headerFields.arp_op = arpPacket->getOpcode();
         }
     }else{
-        headerFields.inport = packet_in_msg->getMatch().OFB_IN_PORT;
-        headerFields.src_mac = packet_in_msg->getMatch().OFB_ETH_SRC;
-        headerFields.dst_mac = packet_in_msg->getMatch().OFB_ETH_DST;
-        headerFields.eth_type = packet_in_msg->getMatch().OFB_ETH_TYPE;
-        headerFields.arp_src_adr = packet_in_msg->getMatch().OFB_ARP_SPA;
-        headerFields.arp_dst_adr = packet_in_msg->getMatch().OFB_ARP_TPA;
-        headerFields.arp_op = packet_in_msg->getMatch().OFB_ARP_OP;
+        headerFields.inport = packet_in_msg->getMatch().in_port;
+        headerFields.src_mac = packet_in_msg->getMatch().dl_src;
+        headerFields.dst_mac = packet_in_msg->getMatch().dl_dst;
+        headerFields.eth_type = packet_in_msg->getMatch().dl_type;
+        headerFields.arp_src_adr = packet_in_msg->getMatch().nw_src;
+        headerFields.arp_dst_adr = packet_in_msg->getMatch().nw_dst;
+        headerFields.arp_op = packet_in_msg->getMatch().nw_proto;
     }
 
     return headerFields;
 
 }
+
+
+} /*end namespace ofp*/
 
