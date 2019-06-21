@@ -22,7 +22,7 @@
 #include <omnetpp.h>
 #include <vector>
 #include <string>
-#include <openflow/openflow/switch/OF_FlowTableEntry.h>
+#include <openflow/openflow/switch/flowtable/OF_FlowTableEntry.h>
 
 using namespace omnetpp;
 
@@ -89,8 +89,16 @@ public:
 
 protected:
     virtual void initialize();
+    virtual void handleParameterChange(const char* parname);
+
     /**
-     * @brief Table does not receive messages, throws cRuntimeError when handleMessage is called.
+     * Schedules a self message to start aging process
+     */
+    void scheduleNextAging();
+
+    /**
+     * @brief Table does not receive messages except scheduled aging self messages,
+     *        throws cRuntimeError when handleMessage when any other received.
      * @param msg unchecked.
      */
     virtual void handleMessage(cMessage *msg);
@@ -130,22 +138,30 @@ public:
     virtual ~OF_FlowTable() override;
 
 private:
-    std::vector<OF_FlowTableEntry*> _entries;
-
     /**
-     * Time when next entry is aging
-     */
-    simtime_t _nextAging;
-
-    /**
-     * Table Index in the Switch initialized on startup.
+     * Cached Table Index in the Switch.
      */
     int _tableIndex;
+
+    /**
+     * Flow Table entries
+     */
+    std::vector<OF_FlowTableEntry*> _entries;
 
     /**
      * Maximum number of Flow Table entries.
      */
     size_t _maxEntries;
+
+    /**
+     * Time when next entry is aging.
+     */
+    simtime_t _nextAging;
+
+    /**
+     * Cached aging check interval.
+     */
+    double _agingInterval;
 };
 
 } /* namespace ofp */

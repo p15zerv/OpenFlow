@@ -6,9 +6,9 @@
 #include <omnetpp.h>
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 
-#include "openflow/openflow/switch/Buffer.h"
+#include "openflow/openflow/switch/buffer/Buffer.h"
 #include "openflow/messages/openflowprotocol/OFP_Message.h"
-#include "openflow/openflow/switch/Flow_Table.h"
+#include "openflow/openflow/switch/flowtable/old/Flow_Table.h"
 #include <vector>
 
 namespace ofp{

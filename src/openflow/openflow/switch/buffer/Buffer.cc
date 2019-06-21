@@ -1,6 +1,6 @@
 #include <omnetpp.h>
 #include <openflow/openflow/protocol/OpenFlow.h>
-#include "openflow/openflow/switch/Buffer.h"
+#include "openflow/openflow/switch/buffer/Buffer.h"
 #include <algorithm>
 
 using namespace std;

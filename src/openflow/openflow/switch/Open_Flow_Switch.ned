@@ -2,6 +2,8 @@
 
 package openflow.openflow.switch;
 
+import openflow.openflow.switch.engine.OF_Switch;
+
 import inet.linklayer.contract.IWiredNic;
 import inet.linklayer.ethernet.EthernetInterface;
 import inet.networklayer.common.InterfaceTable;

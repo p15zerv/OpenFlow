@@ -4,7 +4,7 @@
 #define OPENFLOW_UTILITY_STATICSPANNINGTREE_H_
 
 #include <omnetpp.h>
-#include "openflow/openflow/switch/OF_Switch.h"
+#include "openflow/openflow/switch/engine/OF_Switch.h"
 
 namespace ofp{
 

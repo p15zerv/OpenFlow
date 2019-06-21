@@ -4,7 +4,7 @@
 
 #include <openflow/openflow/protocol/OpenFlow.h>
 #include <vector>
-#include "openflow/openflow/switch/Flow_Table_Entry.h"
+#include "openflow/openflow/switch/flowtable/old/Flow_Table_Entry.h"
 #include <string>
 #include <omnetpp.h>
 

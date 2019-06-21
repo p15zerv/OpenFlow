@@ -1,11 +1,13 @@
 
 
-package openflow.openflow.switch;
+package openflow.openflow.switch.engine;
+
+import openflow.openflow.switch.engine.IOpenFlowRelayUnit;
 
 ////The Switch Application module is a TCP application and therefore directly connected
 //to the TCP module. It belongs to the control plane and is responsible for
 //the communication with the controller.
-simple OF_Switch
+simple OF_Switch like IOpenFlowRelayUnit
 {
     parameters:
         @class(ofp::OF_Switch);

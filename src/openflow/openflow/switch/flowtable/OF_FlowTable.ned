@@ -16,17 +16,23 @@
 // 
 
 
-package openflow.openflow.switch;
+package openflow.openflow.switch.flowtable;
+
+import openflow.openflow.switch.flowtable.IOpenFlowFlowTable;
 
 //
 // The FlowTable module displays the flow table in an OF Switch.
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple OF_FlowTable
+simple OF_FlowTable like IOpenFlowFlowTable
 {
     parameters:
         @class(ofp::OF_FlowTable);
         @display("i=block/table2,#008002");
-
-        int maxFlowEntries = default(0); // if maxFlowEntries <= 0, infinit flow table entries allowed.
+        
+        // The maximum numbers of entries this table can hold, 
+        // if <= 0 the table size will be infinite 
+        int maxFlowEntries = default(0);
+        // the interval to check if there are aged entries. Auto check if == 0
+        double agingInterval @unit("s") = default(0s);
 }

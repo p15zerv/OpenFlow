@@ -2,7 +2,7 @@
 #include "inet/linklayer/ethernet/EtherFrame_m.h"
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
-#include "openflow/openflow/switch/Flow_Table_Entry.h"
+#include "Flow_Table_Entry.h"
 
 using namespace std;
 

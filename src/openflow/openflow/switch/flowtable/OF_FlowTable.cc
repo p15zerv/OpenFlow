@@ -61,19 +61,46 @@ OF_FlowTable::~OF_FlowTable() {
 
 void OF_FlowTable::initialize()
 {
-    _maxEntries = par("maxFlowEntries");
+    handleParameterChange(nullptr);
     _tableIndex = this->getIndex();
     _nextAging = simtime_t::getMaxTime();
 
     WATCH(_nextAging);
     WATCH_VECTOR(_entries);
 
+
+    if(_agingInterval > 0){
+        scheduleNextAging();
+    }
+
     updateDisplayString();
+}
+
+void OF_FlowTable::handleParameterChange(const char* parname)
+{
+    if (!parname || !strcmp(parname, "agingInterval"))
+    {
+        _agingInterval = par("agingInterval").doubleValue();
+    }
+    if (!parname || !strcmp(parname, "maxFlowEntries"))
+    {
+        _maxEntries = par("maxFlowEntries");
+    }
+}
+
+void OF_FlowTable::scheduleNextAging() {
+    scheduleAt(simTime() + _agingInterval, new cMessage("AGING"));
 }
 
 void OF_FlowTable::handleMessage(cMessage *msg)
 {
-    throw cRuntimeError("This module doesn't process messages");
+    if(msg->isSelfMessage() && !strcmp(msg->getName(), "AGING")) {
+        //start aging
+        removeAgedEntries();
+    } else {
+        throw cRuntimeError("This module doesn't process messages");
+    }
+    delete msg;
 }
 
 void OF_FlowTable::updateDisplayString() {
@@ -153,7 +180,8 @@ void OF_FlowTable::clear() {
 }
 
 void OF_FlowTable::removeAgedEntriesIfNeeded() {
-    if(_entries.empty()){
+    //return if no entries set or automatic aging turned off.
+    if(_entries.empty() || _agingInterval > 0){
         return;
     }
 
@@ -184,7 +212,7 @@ void OF_FlowTable::removeAgedEntries() {
         OF_FlowTableEntry* entry = (*iter);
         simtime_t entryTimeout = entry->getTimeOut();
         if(now >= entryTimeout){
-           _entries.erase(iter);
+           _entries.erase(iter--);
            delete entry;
            updated = true;
         } else {
@@ -197,6 +225,10 @@ void OF_FlowTable::removeAgedEntries() {
     if(updated){
         sortEntries();
         updateDisplayString();
+    }
+
+    if(_agingInterval > 0){
+        scheduleNextAging();
     }
 
 }
