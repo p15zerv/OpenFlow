@@ -129,7 +129,7 @@ void OF_Controller::handleMessage(cMessage *msg){
             packetsPerSecond[floor(simTime().dbl())]++;
         }
         calcAvgQueueSize(_msgList.size());
-        emit(queueSize,_msgList.size());
+        emit(queueSize,static_cast<unsigned long>(_msgList.size()));
     }
     else
     {   // this is not a self message and we are not yet booted

@@ -151,7 +151,7 @@ private:
     /**
      * Maximum number of Flow Table entries.
      */
-    size_t _maxEntries;
+    unsigned int _maxEntries;
 
     /**
      * Time when next entry is aging.

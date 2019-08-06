@@ -83,7 +83,7 @@ void HyperFlowSynchronizer::handleMessage(cMessage *msg){
             event->setContextPointer(msg);
             scheduleAt(simTime()+serviceTime, event);
         }
-        emit(queueSize,msgList.size());
+        emit(queueSize,static_cast<unsigned long>(msgList.size()));
     }
 
 

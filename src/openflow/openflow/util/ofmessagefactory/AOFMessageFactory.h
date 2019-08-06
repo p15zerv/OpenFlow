@@ -19,7 +19,6 @@
 #ifndef OPENFLOW_OPENFLOW_UTIL_AOFMESSAGEFACTORY_H_
 #define OPENFLOW_OPENFLOW_UTIL_AOFMESSAGEFACTORY_H_
 
-#include <bits/stdint-uintn.h>
 #include <openflow/openflow/protocol/OpenFlow.h>
 #include <string>
 
