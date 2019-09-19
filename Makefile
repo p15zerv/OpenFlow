@@ -8,9 +8,26 @@ cleanall: checkmakefiles
 	cd src && $(MAKE) MODE=release clean
 	cd src && $(MAKE) MODE=debug clean
 	rm -f src/Makefile
+	
+DBG_SUFFIX=""
+ifneq (,$(findstring debug, $(MODE)))
+	DBG_SUFFIX="_dbg"
+endif
+	
+INET_PROJ=../../inet
+MAKEMAKE_OPTIONS := -f --deep --no-deep-includes -O out -KINET_PROJ=../../inet -I. -I$(INET_PROJ)/src/ -L$$\(INET_PROJ\)/out/$$\(CONFIGNAME\)/src -lINET$(DBG_SUFFIX)
 
-makefiles:
-	cd src && opp_makemake --make-so -f --deep -O out -KINET_PROJ=../../inet -I. -I$$\(INET_PROJ\)/src -L$$\(INET_PROJ\)/src -lINET
+makefiles: makefiles-so
+
+makefiles-so:
+	@FEATURE_OPTIONS=$$(opp_featuretool options -f -l -c) && cd src && opp_makemake --make-so $(MAKEMAKE_OPTIONS) $$FEATURE_OPTIONS
+
+makefiles-lib:
+	@FEATURE_OPTIONS=$$(opp_featuretool options -f -l -c) && cd src && opp_makemake --make-lib $(MAKEMAKE_OPTIONS) $$FEATURE_OPTIONS
+
+makefiles-exe:
+	@FEATURE_OPTIONS=$$(opp_featuretool options -f -l -c) && cd src && opp_makemake $(MAKEMAKE_OPTIONS) $$FEATURE_OPTIONS
+
 
 checkmakefiles:
 	@if [ ! -f src/Makefile ]; then \
