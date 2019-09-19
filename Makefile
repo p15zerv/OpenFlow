@@ -9,9 +9,10 @@ cleanall: checkmakefiles
 	cd src && $(MAKE) MODE=debug clean
 	rm -f src/Makefile
 	
-DBG_SUFFIX=""
-ifneq (,$(findstring debug, $(MODE)))
-	DBG_SUFFIX="_dbg"
+ifeq ($(MODE), debug)
+    DBG_SUFFIX=_dbg
+else
+    DBG_SUFFIX=
 endif
 	
 INET_PROJ=../../inet
