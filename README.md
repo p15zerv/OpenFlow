@@ -17,10 +17,22 @@ This fork contains modified sources to increase compatibility to the other frame
 6. Select at least the following INET Project Features TCP Common, TCP(INET), IPv4 protocol, IPv6 protocol, Multi network layer, UDP protocol, SCTP, Ethernet, PPP, MPLS support (incl. LDP and RSVP-TE), HTTPTools, IEEE802.1d
 
 ## Continuous Integration
+The build state of the master branch is monitored:
+* Building:
+<a><img src="https://jenkins.core-rg.de/buildStatus/icon?job=CoRE4INET/CoRE4INET"></a>
 
-There is currently no CI environment set-up for this project.
+<table>
+  <tr>
+    <th></th>
+    <th>Ubuntu 18.04</th>
+    <th>Windows 10</th>
+  </tr>
+  <tr>
+    <td>Building</td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=CoRE4INET/CoRE4INET/Nodes=Ubuntu_18.04"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=CoRE4INET/CoRE4INET/Nodes=Windows_10"></td>
+  </tr>
+</table>
 
-### Tested Environment:  
-	OS: Only tested using Ubuntu Linux 18.04.  
-	OMNETPP: Running in OMNETPP 5.5.1 
-	INET: Running with INET v3.6.6  
+## IMPORTANT
+The OpenFlow model is our original fork to improve compatibility with CoRE4INET for SDN4CoRE. Our simulation models are under continuous development: new parts are added, bugs are corrected, and so on. We cannot assert that the implementation will work fully according to the specifications. YOU ARE RESPONSIBLE YOURSELF TO MAKE SURE THAT THE MODELS YOU USE IN YOUR SIMULATIONS WORK CORRECTLY, AND YOU'RE GETTING VALID RESULTS. 
