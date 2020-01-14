@@ -19,7 +19,7 @@ This fork contains modified sources to increase compatibility to the other frame
 ## Continuous Integration
 The build state of the master branch is monitored:
 * Building:
-<a><img src="https://jenkins.core-rg.de/buildStatus/icon?job=CoRE4INET/CoRE4INET"></a>
+<a><img src="https://jenkins.core-rg.de/buildStatus/icon?job=OpenFlow/OpenFlow"></a>
 
 <table>
   <tr>
@@ -29,8 +29,8 @@ The build state of the master branch is monitored:
   </tr>
   <tr>
     <td>Building</td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=CoRE4INET/CoRE4INET/Nodes=Ubuntu_18.04"></td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=CoRE4INET/CoRE4INET/Nodes=Windows_10"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=OpenFlow/OpenFlow/Nodes=Ubuntu_18.04"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=OpenFlow/OpenFlow/Nodes=Windows_10"></td>
   </tr>
 </table>
 
