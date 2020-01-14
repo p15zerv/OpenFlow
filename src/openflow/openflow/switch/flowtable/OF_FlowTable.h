@@ -88,8 +88,8 @@ public:
 
 
 protected:
-    virtual void initialize();
-    virtual void handleParameterChange(const char* parname);
+    virtual void initialize() override;
+    virtual void handleParameterChange(const char* parname) override;
 
     /**
      * Schedules a self message to start aging process
@@ -101,7 +101,7 @@ protected:
      *        throws cRuntimeError when handleMessage when any other received.
      * @param msg unchecked.
      */
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(cMessage *msg) override;
 
     /**
      * @brief updates the displaystring of talkers and listeners
