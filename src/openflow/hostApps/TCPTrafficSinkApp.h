@@ -9,21 +9,18 @@
 #include <vector>
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 
-using namespace std;
-using namespace inet;
-
 namespace ofp{
 
 /**
  * Single-connection TCP application.
  */
-class INET_API TCPTrafficSinkApp : public cSimpleModule, public virtual TCPSocket::CallbackInterface
+class TCPTrafficSinkApp : public cSimpleModule, public virtual inet::TCPSocket::CallbackInterface
 {
 
   protected:
     int localPort;
     const char * localAddress;
-    TCPSocket socket;
+    inet::TCPSocket socket;
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
     virtual void socketDataArrived(int connId, void *yourPtr, cPacket *msg, bool urgent) override;
@@ -31,7 +28,7 @@ class INET_API TCPTrafficSinkApp : public cSimpleModule, public virtual TCPSocke
     virtual void socketPeerClosed(int connId, void *yourPtr) override;
     virtual void socketClosed(int connId, void *yourPtr) override;
     virtual void socketFailure(int connId, void *yourPtr, int code) override;
-    virtual void socketStatusArrived(int connId, void *yourPtr, TCPStatusInfo *status) override;
+    virtual void socketStatusArrived(int connId, void *yourPtr, inet::TCPStatusInfo *status) override;
 
 };
 

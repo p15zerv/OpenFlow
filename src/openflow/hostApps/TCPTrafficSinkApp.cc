@@ -6,6 +6,7 @@
 #include "inet/networklayer/common/L3AddressResolver.h"
 
 using namespace std;
+using namespace inet;
 
 namespace ofp{
 
